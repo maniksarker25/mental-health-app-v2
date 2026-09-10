@@ -1,0 +1,36 @@
+
+{
+  "expo": {
+    "name": "Mental Health Anonymous",
+    "slug": "mental-health-anonymous",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/5a250f88-b844-47cb-b8e7-ec8fb437d85b.jpg",
+    "scheme": "mentalhealth",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/images/5a250f88-b844-47cb-b8e7-ec8fb437d85b.jpg",
+      "resizeMode": "contain",
+      "backgroundColor": "#F5F6F2"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/5a250f88-b844-47cb-b8e7-ec8fb437d85b.jpg",
+        "backgroundColor": "#F5F6F2"
+      }
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
