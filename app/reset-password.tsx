@@ -13,89 +13,46 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useAppDispatch } from '@/store/hooks';
-import { registerUser } from '@/store/slices/authSlice';
 import { AppButton } from '@/components/ui/shared/AppButton';
 import Toast from 'react-native-toast-message';
-import type { MobileUser } from '@/types';
 
-export default function RegisterScreen() {
+export default function ResetPasswordScreen() {
   const router = useRouter();
-  const dispatch = useAppDispatch();
-  const { redirect } = useLocalSearchParams<{ redirect?: string }>();
+  const { email } = useLocalSearchParams<{ email?: string }>();
 
-  const nameRef = useRef<TextInput>(null);
-  const emailRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
   const confirmPasswordRef = useRef<TextInput>(null);
 
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [agreed, setAgreed] = useState(true);
+  const [focusedField, setFocusedField] = useState<'password' | 'confirmPassword' | null>(null);
+  const [errors, setErrors] = useState<{ password?: string; confirmPassword?: string }>({});
   const [isLoading, setIsLoading] = useState(false);
 
-  const [focusedField, setFocusedField] = useState<
-    'name' | 'email' | 'password' | 'confirmPassword' | null
-  >(null);
-  const [errors, setErrors] = useState<{
-    name?: string;
-    email?: string;
-    password?: string;
-    confirmPassword?: string;
-    agreed?: string;
-  }>({});
-
-  const handleRegister = () => {
+  const handleSave = () => {
     if (isLoading) return;
 
-    const normalizedName = name.trim();
-    const normalizedEmail = email.trim().toLowerCase();
     const nextErrors: typeof errors = {};
 
-    if (!normalizedName) {
-      nextErrors.name = 'Please enter your name or alias.';
-    }
-
-    if (!normalizedEmail) {
-      nextErrors.email = 'Please enter your email address.';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
-      nextErrors.email = 'Please enter a valid email address.';
-    }
-
     if (!password.trim()) {
-      nextErrors.password = 'Please enter a password.';
+      nextErrors.password = 'Please enter a new password.';
     } else if (password.length < 6) {
       nextErrors.password = 'Password must be at least 6 characters.';
     }
 
     if (!confirmPassword.trim()) {
-      nextErrors.confirmPassword = 'Please repeat your password.';
+      nextErrors.confirmPassword = 'Please repeat your new password.';
     } else if (password !== confirmPassword) {
       nextErrors.confirmPassword = 'Passwords do not match.';
-    }
-
-    if (!agreed) {
-      nextErrors.agreed = 'Please accept the compassionate service terms.';
     }
 
     setErrors(nextErrors);
 
     if (Object.keys(nextErrors).length > 0) {
-      if (nextErrors.name) nameRef.current?.focus();
-      else if (nextErrors.email) emailRef.current?.focus();
-      else if (nextErrors.password) passwordRef.current?.focus();
+      if (nextErrors.password) passwordRef.current?.focus();
       else if (nextErrors.confirmPassword) confirmPasswordRef.current?.focus();
-      else if (nextErrors.agreed) {
-        Toast.show({
-          type: 'error',
-          text1: 'Agreement Required',
-          text2: 'Please check the agreement box to continue.',
-        });
-      }
       return;
     }
 
@@ -103,30 +60,14 @@ export default function RegisterScreen() {
     setIsLoading(true);
 
     setTimeout(() => {
-      const newUser: MobileUser = {
-        id: `user-${Date.now()}`,
-        name: normalizedName,
-        email: normalizedEmail,
-        createdAt: new Date().toISOString(),
-      };
-
-      dispatch(registerUser(newUser));
       setIsLoading(false);
-
       Toast.show({
         type: 'success',
-        text1: `Account Created`,
-        text2: `A 6-digit verification code has been sent to ${newUser.email}.`,
+        text1: 'Password Updated',
+        text2: 'Your new password has been saved. Please sign in.',
       });
 
-      router.replace({
-        pathname: '/verify-email',
-        params: {
-          email: newUser.email,
-          redirect: redirect || '/history',
-          mode: 'register',
-        },
-      });
+      router.replace('/login');
     }, 600);
   };
 
@@ -151,91 +92,16 @@ export default function RegisterScreen() {
             <View style={styles.intro}>
               <Text style={styles.brand}>Mental Health Anonymous</Text>
               <Text accessibilityRole="header" style={styles.heading}>
-                Create your account
+                Create New Password
               </Text>
               <Text style={styles.description}>
-                Keep all your anonymous support dispatches securely synchronized across your devices.
+                Choose a secure password to protect your account.
               </Text>
             </View>
 
             {/* Form Card */}
             <View style={styles.card}>
-              {/* Field 1: Name or Alias */}
-              <View style={styles.field}>
-                <Text nativeID="name-label" style={styles.label}>
-                  Your Name or Alias
-                </Text>
-                <View
-                  style={[
-                    styles.inputContainer,
-                    focusedField === 'name' && styles.inputFocused,
-                    !!errors.name && styles.inputInvalid,
-                  ]}>
-                  <TextInput
-                    ref={nameRef}
-                    value={name}
-                    onChangeText={(val) => {
-                      setName(val);
-                      setErrors((curr) => ({ ...curr, name: undefined }));
-                    }}
-                    onFocus={() => setFocusedField('name')}
-                    onBlur={() => setFocusedField(null)}
-                    placeholder="Enter Your Name or Alias"
-                    placeholderTextColor="#A1ABA6"
-                    accessibilityLabel="Your Name or Alias"
-                    accessibilityLabelledBy="name-label"
-                    autoCapitalize="words"
-                    autoCorrect={false}
-                    returnKeyType="next"
-                    onSubmitEditing={() => emailRef.current?.focus()}
-                    editable={!isLoading}
-                    selectionColor="#2E5E52"
-                    style={styles.input}
-                  />
-                </View>
-                {errors.name && <Text style={styles.error}>{errors.name}</Text>}
-              </View>
-
-              {/* Field 2: Email Address */}
-              <View style={styles.field}>
-                <Text nativeID="email-label" style={styles.label}>
-                  Email Address
-                </Text>
-                <View
-                  style={[
-                    styles.inputContainer,
-                    focusedField === 'email' && styles.inputFocused,
-                    !!errors.email && styles.inputInvalid,
-                  ]}>
-                  <TextInput
-                    ref={emailRef}
-                    value={email}
-                    onChangeText={(val) => {
-                      setEmail(val);
-                      setErrors((curr) => ({ ...curr, email: undefined }));
-                    }}
-                    onFocus={() => setFocusedField('email')}
-                    onBlur={() => setFocusedField(null)}
-                    placeholder="your.email@example.com"
-                    placeholderTextColor="#A1ABA6"
-                    accessibilityLabel="Email Address"
-                    accessibilityLabelledBy="email-label"
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    spellCheck={false}
-                    autoComplete="email"
-                    returnKeyType="next"
-                    onSubmitEditing={() => passwordRef.current?.focus()}
-                    editable={!isLoading}
-                    selectionColor="#2E5E52"
-                    style={styles.input}
-                  />
-                </View>
-                {errors.email && <Text style={styles.error}>{errors.email}</Text>}
-              </View>
-
-              {/* Field 3: Password */}
+              {/* Field 1: New Password */}
               <View style={styles.field}>
                 <Text nativeID="password-label" style={styles.label}>
                   Password
@@ -284,7 +150,7 @@ export default function RegisterScreen() {
                 {errors.password && <Text style={styles.error}>{errors.password}</Text>}
               </View>
 
-              {/* Field 4: Confirm Password */}
+              {/* Field 2: Confirm Password */}
               <View style={styles.field}>
                 <Text nativeID="confirm-password-label" style={styles.label}>
                   Confirm Password
@@ -312,7 +178,7 @@ export default function RegisterScreen() {
                     autoCapitalize="none"
                     autoCorrect={false}
                     returnKeyType="go"
-                    onSubmitEditing={handleRegister}
+                    onSubmitEditing={handleSave}
                     editable={!isLoading}
                     selectionColor="#2E5E52"
                     style={styles.input}
@@ -335,44 +201,23 @@ export default function RegisterScreen() {
                 )}
               </View>
 
-              {/* Consent Box */}
-              <TouchableOpacity
-                activeOpacity={0.85}
-                onPress={() => {
-                  setAgreed(!agreed);
-                  setErrors((curr) => ({ ...curr, agreed: undefined }));
-                }}
-                style={styles.agreementBox}>
-                <View style={[styles.checkbox, agreed && styles.checkboxActive]}>
-                  {agreed && <Ionicons name="checkmark" size={13} color="#FFFFFF" />}
-                </View>
-                <Text style={styles.agreementText}>
-                  I agree to use this service compassionately and understand that recipient identities are never tracked.
-                </Text>
-              </TouchableOpacity>
-
-              {/* Submit Button */}
+              {/* Save Button */}
               <AppButton
-                onPress={handleRegister}
+                onPress={handleSave}
                 loading={isLoading}
                 style={styles.submitButton}>
-                Create Account
+                Save
               </AppButton>
             </View>
 
-            {/* Footer Sign In Option */}
+            {/* Footer Back to Sign In */}
             <View style={styles.footer}>
-              <Text style={styles.footerText}>Already have an account? </Text>
+              <Text style={styles.footerText}>Back to </Text>
               <TouchableOpacity
                 accessibilityRole="link"
-                onPress={() =>
-                  router.push({
-                    pathname: '/login',
-                    params: redirect ? { redirect } : undefined,
-                  })
-                }
+                onPress={() => router.push('/login')}
                 style={styles.signInLink}>
-                <Text style={styles.signInText}>Sign In Instead</Text>
+                <Text style={styles.signInText}>Sign In</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -498,39 +343,6 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     color: '#A9524A',
     marginTop: 2,
-  },
-  agreementBox: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    backgroundColor: '#EBF3EE',
-    borderWidth: 1,
-    borderColor: '#D4E4DB',
-    borderRadius: 14,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    gap: 10,
-    marginTop: 2,
-  },
-  checkbox: {
-    width: 18,
-    height: 18,
-    borderRadius: 4,
-    borderWidth: 1.5,
-    borderColor: '#9DB3A8',
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 1.5,
-  },
-  checkboxActive: {
-    backgroundColor: '#285346',
-    borderColor: '#285346',
-  },
-  agreementText: {
-    flex: 1,
-    fontSize: 11.5,
-    lineHeight: 16.5,
-    color: '#4B6358',
   },
   submitButton: {
     borderRadius: 14,

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Switch, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, ScrollView, Switch, TouchableOpacity, Alert, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
@@ -36,25 +36,37 @@ export default function SettingsScreen() {
     user && accountHistories[user.id] ? accountHistories[user.id] : [];
 
   const handleLogout = () => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out of your account?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Sign Out',
-          style: 'destructive',
-          onPress: () => {
-            dispatch(logoutUser());
-            Toast.show({
-              type: 'info',
-              text1: 'Signed Out',
-              text2: 'You have been signed out of your account.',
-            });
+    const performLogout = () => {
+      dispatch(logoutUser());
+      Toast.show({
+        type: 'info',
+        text1: 'Signed Out',
+        text2: 'You have been signed out of your account.',
+      });
+      router.replace('/login');
+    };
+
+    if (Platform.OS === 'web') {
+      const confirmed = typeof window !== 'undefined' && window.confirm
+        ? window.confirm('Are you sure you want to sign out of your account?')
+        : true;
+      if (confirmed) {
+        performLogout();
+      }
+    } else {
+      Alert.alert(
+        'Sign Out',
+        'Are you sure you want to sign out of your account?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Sign Out',
+            style: 'destructive',
+            onPress: performLogout,
           },
-        },
-      ]
-    );
+        ]
+      );
+    }
   };
 
   const handleClearHistory = () => {

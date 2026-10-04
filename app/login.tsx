@@ -1,4 +1,4 @@
-﻿import React, { useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   View,
   Text,
@@ -232,8 +232,8 @@ export default function LoginScreen() {
               </AppButton>
               <TouchableOpacity
                 accessibilityRole="link"
-                accessibilityLabel="Forgot password? Get account help"
-                onPress={() => router.push("/help")}
+                accessibilityLabel="Forgot password? Reset your password"
+                onPress={() => router.push("/forgot-password")}
                 style={styles.forgotPassword}
               >
                 <Text style={styles.linkText}>Forgot Password</Text>
@@ -308,7 +308,16 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     fontSize: 16,
     color: "#18231F",
-    ...Platform.select({ web: { outlineWidth: 0 } }),
+    backgroundColor: "transparent",
+    borderWidth: 0,
+    ...Platform.select({
+      web: {
+        outlineStyle: "none",
+        outlineWidth: 0,
+        outlineColor: "transparent",
+        boxShadow: "none",
+      } as any,
+    }),
   },
   passwordToggle: {
     minWidth: 48,

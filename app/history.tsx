@@ -1,22 +1,59 @@
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Alert, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useAppSelector } from '@/store/hooks';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { logoutUser } from '@/store/slices/authSlice';
 import { AppCard } from '@/components/ui/shared/AppCard';
 import { AppButton } from '@/components/ui/shared/AppButton';
 import { EmptyState } from '@/components/ui/shared/States';
 import { formatSentDate } from '@/utils/format';
+import Toast from 'react-native-toast-message';
 
 export default function StandaloneHistoryScreen() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const { user, isAuthenticated, accountHistories } = useAppSelector(
     (state) => state.auth
   );
 
   const userDispatches =
     user && accountHistories[user.id] ? accountHistories[user.id] : [];
+
+  const handleLogout = () => {
+    const performLogout = () => {
+      dispatch(logoutUser());
+      Toast.show({
+        type: 'info',
+        text1: 'Signed Out',
+        text2: 'You have been signed out of your account.',
+      });
+      router.replace('/login');
+    };
+
+    if (Platform.OS === 'web') {
+      const confirmed = typeof window !== 'undefined' && window.confirm
+        ? window.confirm('Are you sure you want to sign out of your account?')
+        : true;
+      if (confirmed) {
+        performLogout();
+      }
+    } else {
+      Alert.alert(
+        'Sign Out',
+        'Are you sure you want to sign out of your account?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Sign Out',
+            style: 'destructive',
+            onPress: performLogout,
+          },
+        ]
+      );
+    }
+  };
 
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-canvas">
@@ -28,7 +65,15 @@ export default function StandaloneHistoryScreen() {
           <Ionicons name="arrow-back" size={18} color="#18231F" />
         </TouchableOpacity>
         <Text className="text-[15px] font-bold text-ink">Send History</Text>
-        <View className="w-9" />
+        {isAuthenticated && user ? (
+          <TouchableOpacity
+            onPress={handleLogout}
+            className="h-9 w-9 items-center justify-center rounded-full bg-canvas border border-line active:bg-danger-soft">
+            <Ionicons name="log-out-outline" size={17} color="#A9524A" />
+          </TouchableOpacity>
+        ) : (
+          <View className="w-9" />
+        )}
       </View>
 
       {/* Main Content */}
@@ -84,11 +129,18 @@ export default function StandaloneHistoryScreen() {
                   </View>
                 </View>
 
-                <View className="rounded-full bg-mist px-3 py-1">
-                  <Text className="text-[11px] font-bold text-forest">
-                    {userDispatches.length}{' '}
-                    {userDispatches.length === 1 ? 'Dispatch' : 'Dispatches'}
-                  </Text>
+                <View className="flex-row items-center gap-2">
+                  <View className="rounded-full bg-mist px-3 py-1">
+                    <Text className="text-[11px] font-bold text-forest">
+                      {userDispatches.length}{' '}
+                      {userDispatches.length === 1 ? 'Dispatch' : 'Dispatches'}
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={handleLogout}
+                    className="h-8 w-8 items-center justify-center rounded-full bg-danger-soft border border-danger/20 active:opacity-75">
+                    <Ionicons name="log-out-outline" size={15} color="#A9524A" />
+                  </TouchableOpacity>
                 </View>
               </View>
             </AppCard>

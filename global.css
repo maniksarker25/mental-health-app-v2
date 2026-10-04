@@ -1,3 +1,20 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+input,
+textarea,
+select,
+button,
+[contenteditable="true"] {
+  outline: none !important;
+  -webkit-tap-highlight-color: transparent;
+}
+
+input:focus,
+textarea:focus,
+select:focus,
+button:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}

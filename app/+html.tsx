@@ -21,6 +21,14 @@ export default function Root({ children }: PropsWithChildren) {
                 margin: 0;
                 padding: 0;
               }
+              input, textarea, select, button, [contenteditable="true"] {
+                outline: none !important;
+                -webkit-tap-highlight-color: transparent;
+              }
+              input:focus, textarea:focus, select:focus, button:focus {
+                outline: none !important;
+                box-shadow: none !important;
+              }
             `,
           }}
         />
