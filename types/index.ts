@@ -21,6 +21,17 @@ export interface Topic {
   icon: string;
 }
 
+export interface Article {
+  id: string;
+  topicId: TopicId;
+  title: string;
+  excerpt: string;
+  readTime: string;
+  category: string;
+  url: string;
+  featured?: boolean;
+}
+
 export type DeliveryMethod = 'EMAIL' | 'SMS';
 
 export type ShareStatus = 'SENT' | 'FAILED';
@@ -37,6 +48,7 @@ export interface CreateSharePayload {
   deliveryMethod: DeliveryMethod;
   recipient: string;
   message?: string;
+  articles?: Article[];
   userId?: string;
   userEmail?: string;
 }
@@ -61,9 +73,12 @@ export interface HistoryEntry {
   userEmail?: string;
   topicId: TopicId;
   topicName: string;
+  articles?: Article[];
+  extraResourcesCount?: number;
   method: DeliveryMethod;
   maskedRecipient: string;
   sentAt: string;
+  formattedDate?: string;
   status: ShareStatus;
 }
 

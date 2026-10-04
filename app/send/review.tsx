@@ -53,7 +53,7 @@ function ReviewRow({
 export default function ReviewScreen() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { selectedTopic, recipient, message } = useAppSelector(
+  const { selectedTopic, selectedArticles, recipient, message } = useAppSelector(
     (state) => state.share
   );
 
@@ -103,6 +103,7 @@ export default function ReviewScreen() {
         deliveryMethod: recipient.method,
         recipient: rawRecipient,
         message: message || undefined,
+        articles: selectedArticles,
         userId: user.id,
         userEmail: user.email,
       }).unwrap();
@@ -113,6 +114,7 @@ export default function ReviewScreen() {
         userEmail: user.email,
         topicId: selectedTopic.id,
         topicName: selectedTopic.name,
+        articles: selectedArticles,
         method: recipient.method,
         maskedRecipient,
         sentAt: new Date().toISOString(),
@@ -179,6 +181,40 @@ export default function ReviewScreen() {
           }
           editAccessibilityLabel="Edit topic"
           onEdit={() => router.push('/(tabs)/home')}
+        />
+
+        {/* Selected Educational Articles & Web Links */}
+        <ReviewRow
+          label={`Articles & Web Links (${selectedArticles.length})`}
+          value={
+            <View className="gap-2 mt-0.5">
+              {selectedArticles.length === 0 ? (
+                <Text className="text-[13px] text-ink-tertiary">
+                  Standard educational packet
+                </Text>
+              ) : (
+                selectedArticles.map((art) => (
+                  <View
+                    key={art.id}
+                    className="rounded-xl bg-canvas p-2.5 border border-line/60">
+                    <Text className="text-[13.5px] font-semibold text-ink">
+                      {art.title}
+                    </Text>
+                    <View className="flex-row items-center gap-1.5 mt-1">
+                      <Ionicons name="link-outline" size={12} color="#285346" />
+                      <Text
+                        numberOfLines={1}
+                        className="text-[11.5px] font-medium text-primary">
+                        {art.url}
+                      </Text>
+                    </View>
+                  </View>
+                ))
+              )}
+            </View>
+          }
+          editAccessibilityLabel="Edit articles"
+          onEdit={() => router.push(`/topics/${selectedTopic.id}`)}
         />
 
         <ReviewRow

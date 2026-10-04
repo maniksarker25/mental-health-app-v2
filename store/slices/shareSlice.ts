@@ -1,14 +1,16 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import type { DeliveryMethod, Recipient, Topic } from '@/types';
+import type { Article, DeliveryMethod, Recipient, Topic } from '@/types';
 
 export interface ShareState {
   selectedTopic: Topic | null;
+  selectedArticles: Article[];
   recipient: Recipient | null;
   message: string;
 }
 
 const initialState: ShareState = {
   selectedTopic: null,
+  selectedArticles: [],
   recipient: null,
   message: '',
 };
@@ -19,6 +21,25 @@ export const shareSlice = createSlice({
   reducers: {
     setSelectedTopic: (state, action: PayloadAction<Topic>) => {
       state.selectedTopic = action.payload;
+    },
+    setSelectedArticles: (state, action: PayloadAction<Article[]>) => {
+      state.selectedArticles = action.payload;
+    },
+    toggleArticleSelection: (state, action: PayloadAction<Article>) => {
+      const exists = state.selectedArticles.some((a) => a.id === action.payload.id);
+      if (exists) {
+        state.selectedArticles = state.selectedArticles.filter(
+          (a) => a.id !== action.payload.id
+        );
+      } else {
+        state.selectedArticles.push(action.payload);
+      }
+    },
+    selectAllArticles: (state, action: PayloadAction<Article[]>) => {
+      state.selectedArticles = action.payload;
+    },
+    clearSelectedArticles: (state) => {
+      state.selectedArticles = [];
     },
     setRecipient: (state, action: PayloadAction<Recipient>) => {
       state.recipient = action.payload;
@@ -35,6 +56,7 @@ export const shareSlice = createSlice({
     },
     resetShareFlow: (state) => {
       state.selectedTopic = null;
+      state.selectedArticles = [];
       state.recipient = null;
       state.message = '';
     },
@@ -43,6 +65,10 @@ export const shareSlice = createSlice({
 
 export const {
   setSelectedTopic,
+  setSelectedArticles,
+  toggleArticleSelection,
+  selectAllArticles,
+  clearSelectedArticles,
   setRecipient,
   setDeliveryMethod,
   setMessage,
@@ -50,3 +76,4 @@ export const {
 } = shareSlice.actions;
 
 export default shareSlice.reducer;
+

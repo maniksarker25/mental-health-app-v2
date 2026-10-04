@@ -2,6 +2,8 @@ import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/tool
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { MobileUser, HistoryEntry } from '@/types';
 
+import { mockHistoryEntries } from '@/data/historyData';
+
 const AUTH_STORAGE_KEY = 'mha_mobile_auth_state_v2';
 
 export interface AuthState {
@@ -11,43 +13,22 @@ export interface AuthState {
   accountHistories: Record<string, HistoryEntry[]>;
 }
 
-// Initial demo accounts with pre-seeded dispatches
+// Initial demo accounts with pre-seeded dispatches from json
 const DEMO_HISTORIES: Record<string, HistoryEntry[]> = {
-  'user-demo-1': [
-    {
-      id: 'disp-demo-101',
-      userId: 'user-demo-1',
-      userEmail: 'sarah.jenkins@example.com',
-      topicId: 'anxiety',
-      topicName: 'Anxiety & Panic Attacks',
-      method: 'SMS',
-      maskedRecipient: '+1 (555) •••-4819',
-      sentAt: new Date(Date.now() - 1000 * 60 * 60 * 26).toISOString(),
-      status: 'SENT',
-    },
-    {
-      id: 'disp-demo-102',
-      userId: 'user-demo-1',
-      userEmail: 'sarah.jenkins@example.com',
-      topicId: 'stress-burnout',
-      topicName: 'Burnout & Exhaustion',
-      method: 'EMAIL',
-      maskedRecipient: 'm••••••@company.org',
-      sentAt: new Date(Date.now() - 1000 * 60 * 60 * 74).toISOString(),
-      status: 'SENT',
-    },
-  ],
+  'user-demo-1': mockHistoryEntries,
   'user-demo-2': [
     {
       id: 'disp-demo-201',
       userId: 'user-demo-2',
       userEmail: 'alex.miller@example.com',
       topicId: 'depression',
-      topicName: 'Depression & Heavy Sadness',
+      topicName: 'Depression',
       method: 'EMAIL',
-      maskedRecipient: 'd•••••@gmail.com',
+      maskedRecipient: 'd***@g***l.com',
       sentAt: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(),
+      formattedDate: 'Sep 13, 2:15 PM',
       status: 'SENT',
+      extraResourcesCount: 2,
     },
   ],
 };
