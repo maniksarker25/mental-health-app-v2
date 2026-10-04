@@ -5,6 +5,8 @@ import {
   ActivityIndicator,
   View,
   type GestureResponderEvent,
+  type StyleProp,
+  type ViewStyle,
 } from 'react-native';
 import { cn } from '@/utils/format';
 
@@ -26,6 +28,7 @@ interface AppButtonProps {
   rightIcon?: React.ReactNode;
   className?: string;
   textClassName?: string;
+  style?: StyleProp<ViewStyle>;
 }
 
 const variantContainerClasses: Record<ButtonVariant, string> = {
@@ -55,6 +58,7 @@ export function AppButton({
   rightIcon,
   className,
   textClassName,
+  style,
 }: AppButtonProps) {
   const isDisabled = disabled || loading;
 
@@ -63,6 +67,7 @@ export function AppButton({
       activeOpacity={0.75}
       onPress={onPress}
       disabled={isDisabled}
+      style={style}
       className={cn(
         'min-h-[52px] flex-row items-center justify-center rounded-2xl px-5 py-3.5',
         variantContainerClasses[variant],

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useRef, useState } from "react";
 import {
   View,
   Text,
@@ -6,231 +6,347 @@ import {
   TouchableOpacity,
   ScrollView,
   KeyboardAvoidingView,
+  Keyboard,
   Platform,
-} from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { useAppDispatch } from '@/store/hooks';
-import { loginUser } from '@/store/slices/authSlice';
-import { AppButton } from '@/components/ui/shared/AppButton';
-import { AppCard } from '@/components/ui/shared/AppCard';
-import { PrivacyNotice } from '@/components/ui/shared/PrivacyNotice';
-import Toast from 'react-native-toast-message';
-import type { MobileUser } from '@/types';
+  StyleSheet,
+} from "react-native";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import { useAppDispatch } from "@/store/hooks";
+import { loginUser } from "@/store/slices/authSlice";
+import { AppButton } from "@/components/ui/shared/AppButton";
+import Toast from "react-native-toast-message";
+import type { MobileUser } from "@/types";
 
 export default function LoginScreen() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { redirect } = useLocalSearchParams<{ redirect?: string }>();
-
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const emailRef = useRef<TextInput>(null);
+  const passwordRef = useRef<TextInput>(null);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [focusedField, setFocusedField] = useState<"email" | "password" | null>(
+    null,
+  );
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>(
+    {},
+  );
 
   const handleLogin = () => {
-    if (!email.trim() || !password.trim()) {
-      Toast.show({
-        type: 'error',
-        text1: 'Required Fields',
-        text2: 'Please enter both your email and password.',
-      });
+    if (isLoading) return;
+    const normalizedEmail = email.trim().toLowerCase();
+    const nextErrors = {
+      email: !normalizedEmail
+        ? "Please enter your email address."
+        : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)
+          ? "Please enter a valid email address."
+          : undefined,
+      password: !password.trim() ? "Please enter your password." : undefined,
+    };
+    setErrors(nextErrors);
+    if (nextErrors.email || nextErrors.password) {
+      (nextErrors.email ? emailRef : passwordRef).current?.focus();
       return;
     }
-
+    Keyboard.dismiss();
     setIsLoading(true);
-
     setTimeout(() => {
-      // Create user session from email
+      // Preserve the existing local session flow.
       const user: MobileUser = {
-        id: email.includes('sarah') ? 'user-demo-1' : `user-${Date.now()}`,
-        name: email.split('@')[0].replace('.', ' ').replace(/^\w/, (c) => c.toUpperCase()),
-        email: email.trim().toLowerCase(),
+        id: normalizedEmail.includes("sarah")
+          ? "user-demo-1"
+          : `user-${Date.now()}`,
+        name: normalizedEmail
+          .split("@")[0]
+          .replace(".", " ")
+          .replace(/^\w/, (c) => c.toUpperCase()),
+        email: normalizedEmail,
         createdAt: new Date().toISOString(),
       };
-
       dispatch(loginUser(user));
       setIsLoading(false);
-
       Toast.show({
-        type: 'success',
+        type: "success",
         text1: `Welcome back, ${user.name}!`,
-        text2: 'Signed in successfully.',
+        text2: "Signed in successfully.",
       });
-
-      if (redirect) {
-        router.replace(redirect as any);
-      } else {
-        router.replace('/history');
-      }
+      router.replace(redirect ? (redirect as any) : "/history");
     }, 600);
   };
 
-  const handleDemoLogin = () => {
-    setIsLoading(true);
-
-    setTimeout(() => {
-      const demoUser: MobileUser = {
-        id: 'user-demo-1',
-        name: 'Sarah Jenkins',
-        email: 'sarah.jenkins@example.com',
-        createdAt: '2026-01-15T10:00:00.000Z',
-      };
-
-      dispatch(loginUser(demoUser));
-      setIsLoading(false);
-
-      Toast.show({
-        type: 'success',
-        text1: 'Signed in as Sarah Jenkins',
-        text2: 'Loaded pre-synced dispatch records.',
-      });
-
-      if (redirect) {
-        router.replace(redirect as any);
-      } else {
-        router.replace('/history');
-      }
-    }, 400);
-  };
-
   return (
-    <SafeAreaView edges={['top']} className="flex-1 bg-canvas">
+    <SafeAreaView style={styles.screen}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1">
-        
-        {/* Header Bar */}
-        <View className="flex-row items-center justify-between px-4 py-3 border-b border-line bg-surface">
-          <TouchableOpacity
-            onPress={() => router.back()}
-            className="h-9 w-9 items-center justify-center rounded-full bg-canvas border border-line">
-            <Ionicons name="arrow-back" size={18} color="#18231F" />
-          </TouchableOpacity>
-          <Text className="text-[14.5px] font-bold text-ink">Member Sign In</Text>
-          <View className="w-9" />
-        </View>
-
+        behavior={
+          Platform.OS === "ios"
+            ? "padding"
+            : Platform.OS === "android"
+              ? "height"
+              : undefined
+        }
+        style={styles.screen}
+      >
         <ScrollView
-          className="flex-1 px-5"
-          contentContainerClassName="pb-12 pt-5"
-          showsVerticalScrollIndicator={false}>
-          
-          {/* Welcome Intro */}
-          <View className="mb-6">
-            <View className="h-12 w-12 items-center justify-center rounded-2xl bg-primary mb-3 shadow-xs">
-              <Ionicons name="lock-closed" size={22} color="#FFFFFF" />
-            </View>
-            <Text className="text-[24px] font-bold text-ink">Welcome back</Text>
-            <Text className="mt-1 text-[13.5px] leading-relaxed text-ink-secondary">
-              Sign in to manage your private dispatches, view synchronized delivery logs, and send confidential toolkits.
-            </Text>
-          </View>
-
-          {/* Form Card */}
-          <AppCard className="p-5">
-            {/* Email Field */}
-            <View className="mb-4">
-              <Text className="text-[12px] font-bold uppercase tracking-wider text-sage mb-1.5">
-                Email Address
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.content}>
+            <View style={styles.intro}>
+              <Text style={styles.brand}>Mental Health Anonymous</Text>
+              <Text accessibilityRole="header" style={styles.heading}>
+                Welcome back
               </Text>
-              <View className="flex-row items-center rounded-2xl bg-canvas border border-line px-3.5 py-3">
-                <Ionicons name="mail-outline" size={17} color="#6B7A75" />
-                <TextInput
-                  value={email}
-                  onChangeText={setEmail}
-                  placeholder="your.name@example.com"
-                  placeholderTextColor="#9AA5A0"
-                  autoCapitalize="none"
-                  keyboardType="email-address"
-                  className="ml-2.5 flex-1 text-[14px] text-ink font-medium"
-                />
-              </View>
-            </View>
-
-            {/* Password Field */}
-            <View className="mb-5">
-              <Text className="text-[12px] font-bold uppercase tracking-wider text-sage mb-1.5">
-                Password
+              <Text style={styles.description}>
+                Sign in to manage your private dispatches, view synchronized
+                delivery logs, and send confidential toolkits.
               </Text>
-              <View className="flex-row items-center rounded-2xl bg-canvas border border-line px-3.5 py-3">
-                <Ionicons name="key-outline" size={17} color="#6B7A75" />
-                <TextInput
-                  value={password}
-                  onChangeText={setPassword}
-                  placeholder="••••••••"
-                  placeholderTextColor="#9AA5A0"
-                  secureTextEntry={!showPassword}
-                  autoCapitalize="none"
-                  className="ml-2.5 flex-1 text-[14px] text-ink font-medium"
-                />
-                <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                  <Ionicons
-                    name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                    size={18}
-                    color="#6B7A75"
+            </View>
+            <View style={styles.form}>
+              <View style={styles.field}>
+                <Text nativeID="login-email-label" style={styles.label}>
+                  Email
+                </Text>
+                <View
+                  style={[
+                    styles.inputContainer,
+                    focusedField === "email" && styles.inputFocused,
+                    !!errors.email && styles.inputInvalid,
+                  ]}
+                >
+                  <TextInput
+                    ref={emailRef}
+                    value={email}
+                    onChangeText={(value) => {
+                      setEmail(value);
+                      setErrors((current) => ({
+                        ...current,
+                        email: undefined,
+                      }));
+                    }}
+                    onFocus={() => setFocusedField("email")}
+                    onBlur={() => setFocusedField(null)}
+                    placeholder="Enter your email"
+                    placeholderTextColor="#87948E"
+                    accessibilityLabel="Email address"
+                    accessibilityLabelledBy="login-email-label"
+                    accessibilityHint={errors.email}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    spellCheck={false}
+                    autoComplete="email"
+                    textContentType="username"
+                    returnKeyType="next"
+                    submitBehavior="submit"
+                    onSubmitEditing={() => passwordRef.current?.focus()}
+                    editable={!isLoading}
+                    selectionColor="#2E5E52"
+                    style={styles.input}
                   />
-                </TouchableOpacity>
+                </View>
+                {errors.email && (
+                  <Text accessibilityLiveRegion="polite" style={styles.error}>
+                    {errors.email}
+                  </Text>
+                )}
               </View>
+              <View style={styles.field}>
+                <Text nativeID="login-password-label" style={styles.label}>
+                  Password
+                </Text>
+                <View
+                  style={[
+                    styles.inputContainer,
+                    focusedField === "password" && styles.inputFocused,
+                    !!errors.password && styles.inputInvalid,
+                  ]}
+                >
+                  <TextInput
+                    ref={passwordRef}
+                    value={password}
+                    onChangeText={(value) => {
+                      setPassword(value);
+                      setErrors((current) => ({
+                        ...current,
+                        password: undefined,
+                      }));
+                    }}
+                    onFocus={() => setFocusedField("password")}
+                    onBlur={() => setFocusedField(null)}
+                    placeholder="Enter your password"
+                    placeholderTextColor="#87948E"
+                    accessibilityLabel="Password"
+                    accessibilityLabelledBy="login-password-label"
+                    accessibilityHint={errors.password}
+                    secureTextEntry={!showPassword}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    spellCheck={false}
+                    autoComplete="current-password"
+                    textContentType="password"
+                    returnKeyType="go"
+                    onSubmitEditing={handleLogin}
+                    editable={!isLoading}
+                    selectionColor="#2E5E52"
+                    style={styles.input}
+                  />
+                  <TouchableOpacity
+                    onPress={() => setShowPassword((current) => !current)}
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                      showPassword ? "Hide password" : "Show password"
+                    }
+                    accessibilityState={{
+                      checked: showPassword,
+                      disabled: isLoading,
+                    }}
+                    disabled={isLoading}
+                    activeOpacity={0.6}
+                    style={styles.passwordToggle}
+                  >
+                    <Ionicons
+                      name={showPassword ? "eye-off-outline" : "eye-outline"}
+                      size={20}
+                      color="#6B7A75"
+                    />
+                  </TouchableOpacity>
+                </View>
+                {errors.password && (
+                  <Text accessibilityLiveRegion="polite" style={styles.error}>
+                    {errors.password}
+                  </Text>
+                )}
+              </View>
+              <AppButton
+                onPress={handleLogin}
+                loading={isLoading}
+                style={styles.submit}
+              >
+                Sign In to Account
+              </AppButton>
+              <TouchableOpacity
+                accessibilityRole="link"
+                accessibilityLabel="Forgot password? Get account help"
+                onPress={() => router.push("/help")}
+                style={styles.forgotPassword}
+              >
+                <Text style={styles.linkText}>Forgot Password</Text>
+              </TouchableOpacity>
             </View>
-
-            {/* Sign In Button */}
-            <AppButton
-              onPress={handleLogin}
-              loading={isLoading}
-              style={{ backgroundColor: '#2E5E52' }}>
-              Sign In to Account
-            </AppButton>
-
-            {/* Demo Sign In Divider */}
-            <View className="my-4 flex-row items-center">
-              <View className="flex-1 h-[1px] bg-line" />
-              <Text className="mx-3 text-[11px] font-bold text-ink-tertiary uppercase">
-                Or Quick Test
-              </Text>
-              <View className="flex-1 h-[1px] bg-line" />
-            </View>
-
-            {/* Quick Demo Sign In Button */}
+          </View>
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Don’t have an account?</Text>
             <TouchableOpacity
-              onPress={handleDemoLogin}
-              disabled={isLoading}
-              className="w-full flex-row items-center justify-center rounded-2xl border border-primary/30 bg-primary-tint py-3 px-4 active:bg-primary-soft">
-              <Ionicons name="flash-outline" size={16} color="#2E5E52" />
-              <Text className="ml-2 text-[13px] font-bold text-primary">
-                Demo Sign In (Sarah Jenkins)
-              </Text>
-            </TouchableOpacity>
-          </AppCard>
-
-          {/* Registration Redirect */}
-          <View className="mt-6 items-center">
-            <Text className="text-[13.5px] text-ink-secondary">
-              Don’t have an account yet?
-            </Text>
-            <TouchableOpacity
+              accessibilityRole="link"
               onPress={() =>
                 router.push({
-                  pathname: '/register',
+                  pathname: "/register",
                   params: redirect ? { redirect } : undefined,
                 })
               }
-              className="mt-1.5 py-1">
-              <Text className="text-[14px] font-bold text-primary underline">
-                Create a Free Account →
-              </Text>
+              style={styles.registerLink}
+            >
+              <Text style={styles.registerText}>Register Now</Text>
             </TouchableOpacity>
-          </View>
-
-          {/* Privacy Footnote */}
-          <View className="mt-8">
-            <PrivacyNotice tone="soft">
-              Your account identity is strictly isolated and never attached to the anonymous messages you dispatch to recipients.
-            </PrivacyNotice>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: "#F5F6F2" },
+  scrollContent: {
+    flexGrow: 1,
+    alignItems: "center",
+    paddingHorizontal: 24,
+    paddingTop: 28,
+    paddingBottom: 32,
+  },
+  content: { width: "100%", maxWidth: 440 },
+  intro: { marginBottom: 30 },
+  brand: { fontSize: 14, lineHeight: 21, color: "#6F8F84", marginBottom: 10 },
+  heading: {
+    fontSize: 34,
+    lineHeight: 42,
+    color: "#18231F",
+    fontFamily: Platform.select({
+      ios: "Georgia",
+      android: "serif",
+      web: "Georgia, serif",
+    }),
+    fontWeight: "400",
+    marginBottom: 8,
+  },
+  description: { fontSize: 14, lineHeight: 22, color: "#6B7A75" },
+  form: { gap: 20 },
+  field: { gap: 8 },
+  label: { fontSize: 15, lineHeight: 22, fontWeight: "500", color: "#18231F" },
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    minHeight: 54,
+    borderWidth: 1,
+    borderColor: "#DDE2DA",
+    borderRadius: 12,
+    backgroundColor: "#FAFAF7",
+  },
+  inputFocused: { borderColor: "#2E5E52", backgroundColor: "#FFFFFF" },
+  inputInvalid: { borderColor: "#A9524A" },
+  input: {
+    flex: 1,
+    minWidth: 0,
+    minHeight: 52,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    fontSize: 16,
+    color: "#18231F",
+    ...Platform.select({ web: { outlineWidth: 0 } }),
+  },
+  passwordToggle: {
+    minWidth: 48,
+    minHeight: 52,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  error: { fontSize: 13, lineHeight: 19, color: "#A9524A" },
+  submit: { borderRadius: 12, backgroundColor: "#2E5E52", marginTop: 4 },
+  forgotPassword: {
+    alignSelf: "flex-end",
+    minHeight: 44,
+    justifyContent: "center",
+    marginTop: -16,
+    paddingHorizontal: 2,
+  },
+  linkText: { fontSize: 13, lineHeight: 20, color: "#35443D" },
+  footer: {
+    width: "100%",
+    maxWidth: 440,
+    marginTop: "auto",
+    paddingTop: 64,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    justifyContent: "center",
+    columnGap: 5,
+  },
+  footerText: { fontSize: 13, lineHeight: 20, color: "#536159" },
+  registerLink: {
+    minHeight: 44,
+    justifyContent: "center",
+    paddingHorizontal: 3,
+  },
+  registerText: {
+    fontSize: 13,
+    lineHeight: 20,
+    fontWeight: "600",
+    color: "#2E5E52",
+  },
+});

@@ -51,7 +51,7 @@ export default function HomeScreen() {
 
   // Playback timer simulation
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let timer: ReturnType<typeof setInterval> | undefined;
     if (isPlaying) {
       timer = setInterval(() => {
         setCurrentTime((prev) => {

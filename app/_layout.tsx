@@ -39,7 +39,7 @@ export default function RootLayout() {
       <Provider store={store}>
         <SafeAreaProvider>
           <AppInitializer>
-            <StatusBar style="dark" backgroundColor="#F5F6F2" />
+            <StatusBar style="dark" />
             <Stack
               screenOptions={{
                 headerShown: false,
