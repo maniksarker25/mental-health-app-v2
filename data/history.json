@@ -1,0 +1,127 @@
+[
+  {
+    "id": "disp-101",
+    "userId": "user-demo-1",
+    "topicId": "anxiety",
+    "topicName": "Anxiety",
+    "method": "EMAIL",
+    "maskedRecipient": "h***d@g***l.com",
+    "sentAt": "2026-09-14T15:12:00.000Z",
+    "formattedDate": "Sep 14, 3:12 PM",
+    "status": "SENT",
+    "extraResourcesCount": 2,
+    "articles": [
+      {
+        "id": "art-anx-1",
+        "title": "Understanding Early Anxiety Symptoms & Somatic Body Cues",
+        "url": "https://mentalhealthanonymous.org/resources/anxiety/somatic-cues"
+      },
+      {
+        "id": "art-anx-2",
+        "title": "Daily 5-4-3-2-1 Sensory Grounding Technique",
+        "url": "https://mentalhealthanonymous.org/resources/anxiety/grounding-protocol"
+      }
+    ]
+  },
+  {
+    "id": "disp-102",
+    "userId": "user-demo-1",
+    "topicId": "anxiety",
+    "topicName": "Anxiety",
+    "method": "EMAIL",
+    "maskedRecipient": "h***d@g***l.com",
+    "sentAt": "2026-09-14T15:12:00.000Z",
+    "formattedDate": "Sep 14, 3:12 PM",
+    "status": "SENT",
+    "extraResourcesCount": 2,
+    "articles": [
+      {
+        "id": "art-anx-1",
+        "title": "Understanding Early Anxiety Symptoms & Somatic Body Cues",
+        "url": "https://mentalhealthanonymous.org/resources/anxiety/somatic-cues"
+      },
+      {
+        "id": "art-anx-3",
+        "title": "De-escalating Panic Attacks in Public or Workplace Spaces",
+        "url": "https://mentalhealthanonymous.org/resources/anxiety/panic-deescalation"
+      }
+    ]
+  },
+  {
+    "id": "disp-103",
+    "userId": "user-demo-1",
+    "topicId": "anxiety",
+    "topicName": "Anxiety",
+    "method": "EMAIL",
+    "maskedRecipient": "h***d@g***l.com",
+    "sentAt": "2026-09-14T15:12:00.000Z",
+    "formattedDate": "Sep 14, 3:12 PM",
+    "status": "SENT",
+    "extraResourcesCount": 2,
+    "articles": [
+      {
+        "id": "art-anx-2",
+        "title": "Daily 5-4-3-2-1 Sensory Grounding Technique",
+        "url": "https://mentalhealthanonymous.org/resources/anxiety/grounding-protocol"
+      },
+      {
+        "id": "art-anx-4",
+        "title": "When and How to Seek Evidence-Based CBT Therapy",
+        "url": "https://mentalhealthanonymous.org/resources/anxiety/cbt-therapy-guide"
+      }
+    ]
+  },
+  {
+    "id": "disp-104",
+    "userId": "user-demo-1",
+    "topicId": "anxiety",
+    "topicName": "Anxiety",
+    "method": "EMAIL",
+    "maskedRecipient": "h***d@g***l.com",
+    "sentAt": "2026-09-14T15:12:00.000Z",
+    "formattedDate": "Sep 14, 3:12 PM",
+    "status": "SENT",
+    "extraResourcesCount": 2,
+    "articles": [
+      {
+        "id": "art-anx-1",
+        "title": "Understanding Early Anxiety Symptoms & Somatic Body Cues",
+        "url": "https://mentalhealthanonymous.org/resources/anxiety/somatic-cues"
+      },
+      {
+        "id": "art-anx-5",
+        "title": "Supporting a Friend Experiencing Severe Health Anxiety",
+        "url": "https://mentalhealthanonymous.org/resources/anxiety/supporting-loved-ones"
+      }
+    ]
+  },
+  {
+    "id": "disp-105",
+    "userId": "user-demo-1",
+    "topicId": "depression",
+    "topicName": "Depression",
+    "method": "EMAIL",
+    "maskedRecipient": "s***k@g***l.com",
+    "sentAt": "2026-09-12T11:20:00.000Z",
+    "formattedDate": "Sep 12, 11:20 AM",
+    "status": "SENT",
+    "extraResourcesCount": 3,
+    "articles": [
+      {
+        "id": "art-dep-1",
+        "title": "The Neurological Difference Between Sadness and Clinical Depression",
+        "url": "https://mentalhealthanonymous.org/resources/depression/sadness-vs-depression"
+      },
+      {
+        "id": "art-dep-2",
+        "title": "Micro-Steps for Low-Energy Days: Building a Minimalist Routine",
+        "url": "https://mentalhealthanonymous.org/resources/depression/micro-steps-routine"
+      },
+      {
+        "id": "art-dep-3",
+        "title": "Overcoming Depressive Isolation Without Feeling Overwhelmed",
+        "url": "https://mentalhealthanonymous.org/resources/depression/gentle-connection"
+      }
+    ]
+  }
+]

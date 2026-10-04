@@ -3,8 +3,12 @@ import { View, Text, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useGetTopicByIdQuery } from '@/store/api/baseApi';
-import { useAppDispatch } from '@/store/hooks';
-import { setSelectedTopic } from '@/store/slices/shareSlice';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import {
+  setSelectedTopic,
+  setSelectedArticles,
+  toggleArticleSelection,
+} from '@/store/slices/shareSlice';
 import { ScreenWrapper } from '@/components/ui/layouts/ScreenWrapper';
 import { AppHeader } from '@/components/ui/shared/AppHeader';
 import { AppCard } from '@/components/ui/shared/AppCard';
@@ -12,11 +16,19 @@ import { AppButton } from '@/components/ui/shared/AppButton';
 import { PrivacyNotice } from '@/components/ui/shared/PrivacyNotice';
 import { ErrorState } from '@/components/ui/shared/States';
 import { TopicIcon } from '@/components/topic/TopicIcon';
+import { ArticleSelector } from '@/components/article/ArticleSelector';
+import { getArticlesByTopicId } from '@/data/articles';
+import type { Article } from '@/types';
+import Toast from 'react-native-toast-message';
 
 export default function TopicDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const dispatch = useAppDispatch();
+
+  const selectedArticles = useAppSelector(
+    (state) => state.share.selectedArticles
+  );
 
   const { data: topic, isLoading, isError, refetch } = useGetTopicByIdQuery(id || '', {
     skip: !id,
@@ -25,6 +37,14 @@ export default function TopicDetailScreen() {
   useEffect(() => {
     if (topic) {
       dispatch(setSelectedTopic(topic));
+      // Pre-select articles for this topic if none selected or topic changed
+      const available = getArticlesByTopicId(topic.id);
+      const isCurrentTopicSelected = selectedArticles.some(
+        (a) => a.topicId === topic.id
+      );
+      if (!isCurrentTopicSelected && available.length > 0) {
+        dispatch(setSelectedArticles(available));
+      }
     }
   }, [topic, dispatch]);
 
@@ -50,13 +70,41 @@ export default function TopicDetailScreen() {
     );
   }
 
+  const handleToggleArticle = (article: Article) => {
+    dispatch(toggleArticleSelection(article));
+  };
+
+  const handleSelectAll = (articles: Article[]) => {
+    dispatch(setSelectedArticles(articles));
+  };
+
+  const handleClearAll = () => {
+    dispatch(setSelectedArticles([]));
+  };
+
+  const handleSend = () => {
+    if (selectedArticles.length === 0) {
+      Toast.show({
+        type: 'info',
+        text1: 'Select Articles',
+        text2: 'Please select at least one article to include in the dispatch.',
+      });
+      return;
+    }
+    router.push('/send/recipient');
+  };
+
   return (
     <ScreenWrapper
       header={<AppHeader />}
       footer={
         <View className="gap-3">
-          <AppButton onPress={() => router.push('/send/recipient')}>
-            Send this resource
+          <AppButton onPress={handleSend}>
+            {selectedArticles.length > 0
+              ? `Send this resource (${selectedArticles.length} article${
+                  selectedArticles.length === 1 ? '' : 's'
+                })`
+              : 'Send this resource'}
           </AppButton>
           <PrivacyNotice className="justify-center" textClassName="text-center">
             Sent anonymously - always.
@@ -73,6 +121,7 @@ export default function TopicDetailScreen() {
         </Text>
       </View>
 
+      {/* What they'll receive educational overview */}
       <AppCard className="mt-6">
         <View className="flex-row items-center gap-2">
           <Ionicons name="document-text-outline" size={18} color="#2E5E52" />
@@ -81,7 +130,7 @@ export default function TopicDetailScreen() {
           </Text>
         </View>
         <Text className="mt-1 text-[12px] text-ink-tertiary">
-          {topic.packetTitle} · reviewed educational packet
+          {topic.packetTitle} · verified educational resource packet
         </Text>
 
         <View className="mt-4 gap-3">
@@ -97,6 +146,15 @@ export default function TopicDetailScreen() {
           ))}
         </View>
       </AppCard>
+
+      {/* Dynamic Search & Multi-Select Articles Component */}
+      <ArticleSelector
+        topicId={topic.id}
+        selectedArticles={selectedArticles}
+        onToggleArticle={handleToggleArticle}
+        onSelectAll={handleSelectAll}
+        onClearAll={handleClearAll}
+      />
 
       <Text className="mt-6 text-[12px] leading-5 text-ink-tertiary">
         Resources are educational only and are not a substitute for professional medical advice, diagnosis or treatment.

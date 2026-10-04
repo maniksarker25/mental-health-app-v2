@@ -26,6 +26,8 @@ export function AppHeader({
       onBack();
     } else if (router.canGoBack()) {
       router.back();
+    } else {
+      router.replace('/(tabs)/home');
     }
   };
 

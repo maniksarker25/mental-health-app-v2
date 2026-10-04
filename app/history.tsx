@@ -1,211 +1,396 @@
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Alert, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+  Platform,
+  StyleSheet,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { logoutUser } from '@/store/slices/authSlice';
-import { AppCard } from '@/components/ui/shared/AppCard';
-import { AppButton } from '@/components/ui/shared/AppButton';
-import { EmptyState } from '@/components/ui/shared/States';
+import { useAppSelector } from '@/store/hooks';
+import { mockHistoryEntries } from '@/data/historyData';
 import { formatSentDate } from '@/utils/format';
-import Toast from 'react-native-toast-message';
 
-export default function StandaloneHistoryScreen() {
+export default function HistoryScreen() {
   const router = useRouter();
-  const dispatch = useAppDispatch();
   const { user, isAuthenticated, accountHistories } = useAppSelector(
     (state) => state.auth
   );
 
+  // User dispatches or fallback to JSON data
   const userDispatches =
-    user && accountHistories[user.id] ? accountHistories[user.id] : [];
+    user && accountHistories[user.id] && accountHistories[user.id].length > 0
+      ? accountHistories[user.id]
+      : mockHistoryEntries;
 
-  const handleLogout = () => {
-    const performLogout = () => {
-      dispatch(logoutUser());
-      Toast.show({
-        type: 'info',
-        text1: 'Signed Out',
-        text2: 'You have been signed out of your account.',
-      });
-      router.replace('/login');
-    };
+  const displayName = user?.name || 'Sarah Jenkins';
+  const displayEmail = user?.email || 'sarah.jenkins@example.com';
+  const dispatchCount = userDispatches.length;
 
-    if (Platform.OS === 'web') {
-      const confirmed = typeof window !== 'undefined' && window.confirm
-        ? window.confirm('Are you sure you want to sign out of your account?')
-        : true;
-      if (confirmed) {
-        performLogout();
-      }
+  const handleGoBack = () => {
+    if (router.canGoBack()) {
+      router.back();
     } else {
-      Alert.alert(
-        'Sign Out',
-        'Are you sure you want to sign out of your account?',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Sign Out',
-            style: 'destructive',
-            onPress: performLogout,
-          },
-        ]
-      );
+      router.replace('/(tabs)/home');
     }
   };
 
   return (
-    <SafeAreaView edges={['top']} className="flex-1 bg-canvas">
-      {/* Header Bar with Back Button */}
-      <View className="flex-row items-center justify-between px-4 py-3 border-b border-line bg-surface">
+    <SafeAreaView edges={['top']} style={styles.screen}>
+      {/* Header Bar */}
+      <View style={styles.headerBar}>
         <TouchableOpacity
-          onPress={() => router.back()}
-          className="h-9 w-9 items-center justify-center rounded-full bg-canvas border border-line active:bg-elevated">
-          <Ionicons name="arrow-back" size={18} color="#18231F" />
+          activeOpacity={0.7}
+          onPress={handleGoBack}
+          style={styles.backButton}>
+          <Ionicons name="chevron-back" size={20} color="#18231F" />
         </TouchableOpacity>
-        <Text className="text-[15px] font-bold text-ink">Send History</Text>
-        {isAuthenticated && user ? (
-          <TouchableOpacity
-            onPress={handleLogout}
-            className="h-9 w-9 items-center justify-center rounded-full bg-canvas border border-line active:bg-danger-soft">
-            <Ionicons name="log-out-outline" size={17} color="#A9524A" />
-          </TouchableOpacity>
-        ) : (
-          <View className="w-9" />
-        )}
+        <Text style={styles.headerTitle}>Send History</Text>
+        <View style={styles.headerPlaceholder} />
       </View>
 
-      {/* Main Content */}
       <ScrollView
-        className="flex-1 px-5"
-        contentContainerClassName="pb-12 pt-4 gap-4"
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}>
-        
-        {/* Unauthenticated State */}
-        {!isAuthenticated || !user ? (
-          <AppCard className="p-6 items-center text-center">
-            <View className="h-14 w-14 items-center justify-center rounded-2xl bg-mist mb-3.5">
-              <Ionicons name="lock-closed-outline" size={26} color="#2E5E52" />
-            </View>
-            <Text className="text-[19px] font-bold text-ink text-center">
-              Sign In to View Your History
-            </Text>
-            <Text className="mt-1.5 text-center text-[13px] leading-relaxed text-ink-secondary">
-              Dispatches are now tied to your secure personal account so you can track delivery across your devices.
-            </Text>
-
-            <View className="mt-6 w-full gap-2.5">
-              <AppButton
-                onPress={() => router.push('/login')}
-                style={{ backgroundColor: '#2E5E52' }}>
-                Sign In to Account
-              </AppButton>
-              <AppButton
-                variant="outline"
-                onPress={() => router.push('/register')}>
-                Create Free Account
-              </AppButton>
-            </View>
-          </AppCard>
-        ) : (
-          <>
-            {/* Authenticated Account Profile Chip */}
-            <AppCard className="p-4 bg-surface border-line">
-              <View className="flex-row items-center justify-between">
-                <View className="flex-row items-center gap-3 flex-1 pr-2">
-                  <View className="h-10 w-10 items-center justify-center rounded-2xl bg-primary shadow-xs">
-                    <Text className="text-[14px] font-bold text-white">
-                      {user.name.charAt(0).toUpperCase()}
-                    </Text>
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-[15px] font-bold text-ink">
-                      {user.name}
-                    </Text>
-                    <Text className="text-[12px] text-ink-secondary truncate">
-                      {user.email}
-                    </Text>
-                  </View>
-                </View>
-
-                <View className="flex-row items-center gap-2">
-                  <View className="rounded-full bg-mist px-3 py-1">
-                    <Text className="text-[11px] font-bold text-forest">
-                      {userDispatches.length}{' '}
-                      {userDispatches.length === 1 ? 'Dispatch' : 'Dispatches'}
-                    </Text>
-                  </View>
-                  <TouchableOpacity
-                    onPress={handleLogout}
-                    className="h-8 w-8 items-center justify-center rounded-full bg-danger-soft border border-danger/20 active:opacity-75">
-                    <Ionicons name="log-out-outline" size={15} color="#A9524A" />
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </AppCard>
-
-            {/* List of Dispatches */}
-            {userDispatches.length === 0 ? (
-              <EmptyState
-                icon={<Ionicons name="time-outline" size={28} color="#2E5E52" />}
-                title="No dispatches yet"
-                description="When you send a confidential message, a masked record will appear here so you can keep track."
-                action={{
-                  label: 'Choose a Topic & Send',
-                  onPress: () => router.push('/(tabs)/topics'),
+        <View style={styles.contentContainer}>
+          {/* User Profile Summary Card */}
+          <View style={styles.profileCard}>
+            <View style={styles.profileLeft}>
+              <Image
+                source={{
+                  uri: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
                 }}
+                style={styles.avatarImage}
               />
-            ) : (
-              <View className="gap-3">
-                <Text className="text-[12px] font-bold uppercase tracking-wider text-sage px-1">
-                  Recent Dispatches
-                </Text>
-                {userDispatches.map((entry) => {
-                  const isSent = entry.status === 'SENT';
-                  return (
-                    <AppCard key={entry.id} className="p-4">
-                      <View className="flex-row items-start justify-between gap-3">
-                        <View className="flex-1 min-w-0">
-                          <Text className="text-[16px] font-bold text-ink">
-                            {entry.topicName}
-                          </Text>
-                          <Text
-                            numberOfLines={1}
-                            className="mt-1 text-[13px] text-ink-secondary">
-                            {entry.method === 'EMAIL' ? 'Email' : 'SMS'} ·{' '}
-                            {entry.maskedRecipient}
-                          </Text>
-                          <Text className="mt-1 text-[11.5px] text-ink-tertiary">
-                            {formatSentDate(entry.sentAt)}
-                          </Text>
-                        </View>
+              <View style={styles.profileInfo}>
+                <Text style={styles.profileName}>{displayName}</Text>
+                <Text style={styles.profileEmail}>{displayEmail}</Text>
+              </View>
+            </View>
 
+            <View style={styles.badgePill}>
+              <Text style={styles.badgeText}>
+                {dispatchCount} {dispatchCount === 1 ? 'Dispatch' : 'Dispatches'}
+              </Text>
+            </View>
+          </View>
+
+          {/* Timeline Section */}
+          <View style={styles.timelineSection}>
+            <Text style={styles.sectionTitle}>Recent Dispatches</Text>
+
+            <View style={styles.timelineList}>
+              {userDispatches.map((entry, index) => {
+                const isLast = index === userDispatches.length - 1;
+                const isDelivered = entry.status === 'SENT';
+                const formattedTime =
+                  entry.formattedDate || formatSentDate(entry.sentAt);
+                const extraCount =
+                  entry.extraResourcesCount ?? (entry.articles ? entry.articles.length : 2);
+
+                return (
+                  <View key={entry.id} style={styles.timelineItem}>
+                    {/* Left Timeline Track */}
+                    <View style={styles.nodeColumn}>
+                      <View style={styles.nodeDot} />
+                      {!isLast && <View style={styles.verticalLine} />}
+                    </View>
+
+                    {/* Dispatch Card */}
+                    <View
+                      style={[
+                        styles.dispatchCard,
+                        !isLast && styles.dispatchCardSpacing,
+                      ]}>
+                      {/* Top Row: Topic Name + Status */}
+                      <View style={styles.cardHeader}>
+                        <Text style={styles.topicName}>{entry.topicName}</Text>
                         <View
-                          className={`flex-row items-center gap-1.5 rounded-full px-2.5 py-1 ${
-                            isSent ? 'bg-mist' : 'bg-danger-soft'
-                          }`}>
+                          style={[
+                            styles.statusPill,
+                            isDelivered
+                              ? styles.statusDelivered
+                              : styles.statusFailed,
+                          ]}>
                           <Ionicons
-                            name={isSent ? 'checkmark-circle' : 'close-circle'}
+                            name={
+                              isDelivered
+                                ? 'checkmark-circle-outline'
+                                : 'close-circle-outline'
+                            }
                             size={13}
-                            color={isSent ? '#22463D' : '#A9524A'}
+                            color={isDelivered ? '#265346' : '#A9524A'}
                           />
                           <Text
-                            className={`text-[11.5px] font-bold ${
-                              isSent ? 'text-primary-dark' : 'text-danger'
-                            }`}>
-                            {isSent ? 'Delivered' : 'Failed'}
+                            style={[
+                              styles.statusText,
+                              isDelivered
+                                ? styles.statusTextDelivered
+                                : styles.statusTextFailed,
+                            ]}>
+                            {isDelivered ? 'Delivered' : 'Failed'}
                           </Text>
                         </View>
                       </View>
-                    </AppCard>
-                  );
-                })}
-              </View>
-            )}
-          </>
-        )}
+
+                      {/* Recipient Details */}
+                      <Text style={styles.recipientText}>
+                        {entry.method === 'EMAIL' ? 'Email' : 'SMS'} ·{' '}
+                        {entry.maskedRecipient}
+                      </Text>
+
+                      {/* Timestamp */}
+                      <Text style={styles.timestampText}>{formattedTime}</Text>
+
+                      {/* Extra Resources Attached Pill */}
+                      {extraCount > 0 && (
+                        <View style={styles.resourcePillContainer}>
+                          <View style={styles.resourcePill}>
+                            <Ionicons
+                              name="layers-outline"
+                              size={12}
+                              color="#265346"
+                            />
+                            <Text style={styles.resourceText}>
+                              {extraCount} extra resource{extraCount === 1 ? '' : 's'}
+                            </Text>
+                          </View>
+                        </View>
+                      )}
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: '#F7F8F4',
+  },
+  headerBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  backButton: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#18231F',
+  },
+  headerPlaceholder: {
+    width: 36,
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 6,
+    paddingBottom: 36,
+    alignItems: 'center',
+  },
+  contentContainer: {
+    width: '100%',
+    maxWidth: 420,
+    gap: 20,
+  },
+  profileCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: '#ECEFE8',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#18231F',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.05,
+        shadowRadius: 10,
+      },
+      android: {
+        elevation: 2,
+      },
+      web: {
+        boxShadow: '0 3px 12px rgba(24, 35, 31, 0.04)',
+      },
+    }),
+  },
+  profileLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  avatarImage: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: '#EBF3EE',
+  },
+  profileInfo: {
+    flex: 1,
+  },
+  profileName: {
+    fontSize: 15.5,
+    fontWeight: '700',
+    color: '#18231F',
+    marginBottom: 2,
+  },
+  profileEmail: {
+    fontSize: 12,
+    color: '#6B7A75',
+  },
+  badgePill: {
+    backgroundColor: '#EBF3EE',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  badgeText: {
+    fontSize: 11.5,
+    fontWeight: '600',
+    color: '#34574C',
+  },
+  timelineSection: {
+    gap: 12,
+  },
+  sectionTitle: {
+    fontSize: 14.5,
+    fontWeight: '600',
+    color: '#5B8678',
+    paddingHorizontal: 2,
+    marginBottom: 2,
+  },
+  timelineList: {
+    paddingLeft: 2,
+  },
+  timelineItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  nodeColumn: {
+    alignItems: 'center',
+    width: 22,
+    marginRight: 10,
+    paddingTop: 16,
+  },
+  nodeDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#265346',
+  },
+  verticalLine: {
+    width: 1.5,
+    flex: 1,
+    minHeight: 120,
+    backgroundColor: '#D8E2DC',
+    marginTop: 6,
+  },
+  dispatchCard: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    padding: 15,
+    borderWidth: 1,
+    borderColor: '#ECEFE8',
+    gap: 6,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#18231F',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.04,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 1,
+      },
+      web: {
+        boxShadow: '0 2px 10px rgba(24, 35, 31, 0.03)',
+      },
+    }),
+  },
+  dispatchCardSpacing: {
+    marginBottom: 14,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  topicName: {
+    fontSize: 15.5,
+    fontWeight: '600',
+    color: '#18231F',
+  },
+  statusPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3.5,
+    borderRadius: 12,
+  },
+  statusDelivered: {
+    backgroundColor: '#EBF3EE',
+  },
+  statusFailed: {
+    backgroundColor: '#FBECEB',
+  },
+  statusText: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  statusTextDelivered: {
+    color: '#265346',
+  },
+  statusTextFailed: {
+    color: '#A9524A',
+  },
+  recipientText: {
+    fontSize: 13,
+    color: '#6B7A75',
+  },
+  timestampText: {
+    fontSize: 11.5,
+    color: '#98A49E',
+  },
+  resourcePillContainer: {
+    flexDirection: 'row',
+    marginTop: 4,
+  },
+  resourcePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: '#EDF5F0',
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  resourceText: {
+    fontSize: 11.5,
+    fontWeight: '600',
+    color: '#285346',
+  },
+});
