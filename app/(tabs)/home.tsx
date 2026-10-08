@@ -97,8 +97,13 @@ export default function HomeScreen() {
       {/* Top Header Bar */}
       <View className="flex-row items-center justify-between px-4 py-3 border-b border-line bg-surface">
         <View className="flex-row items-center gap-2.5">
-          <View className="h-8 w-8 items-center justify-center rounded-xl bg-primary">
-            <Ionicons name="heart" size={16} color="#FFFFFF" />
+          <View className="h-8 w-8 items-center justify-center rounded-xl">
+           <Image
+             source={require('@/assets/images/just-logo.png')}
+             style={{ height: 56, aspectRatio: 2171 / 724 }}
+             resizeMode="contain"
+             accessibilityLabel="Mental Health Anonymous"
+           />
           </View>
           <View>
             <Text className="text-[14px] font-bold text-ink">Mental Health</Text>
@@ -121,7 +126,7 @@ export default function HomeScreen() {
         className="flex-1"
         contentContainerClassName="pb-16"
         showsVerticalScrollIndicator={false}>
-        
+
         {/* Hero Section */}
         <View className="px-4 pt-5 pb-6 bg-surface border-b border-line">
           <View className="self-start rounded-full bg-mist px-3 py-1 mb-2.5">
@@ -175,9 +180,8 @@ export default function HomeScreen() {
                 source={{
                   uri: APP_VIDEO_CONFIG.posterUrl,
                 }}
-                className={`absolute inset-0 h-full w-full object-cover ${
-                  isPlaying ? 'opacity-40' : 'opacity-70'
-                }`}
+                className={`absolute inset-0 h-full w-full object-cover ${isPlaying ? 'opacity-40' : 'opacity-70'
+                  }`}
               />
 
               {/* Dark Ambient Overlay */}
@@ -216,8 +220,8 @@ export default function HomeScreen() {
                       currentTime >= TOTAL_DURATION_SECONDS
                         ? 'reload'
                         : isPlaying
-                        ? 'pause'
-                        : 'play'
+                          ? 'pause'
+                          : 'play'
                     }
                     size={28}
                     color="#FFFFFF"
@@ -334,24 +338,21 @@ export default function HomeScreen() {
             {PACKAGES.map((pkg) => (
               <View
                 key={pkg.id}
-                className={`w-full rounded-2xl border p-4 shadow-xs ${
-                  pkg.popular
-                    ? 'border-forest bg-mist/20 ring-1 ring-forest'
-                    : 'border-line bg-canvas'
-                }`}>
-                
+                className={`w-full rounded-2xl border p-4 shadow-xs ${pkg.popular
+                  ? 'border-forest bg-mist/20 ring-1 ring-forest'
+                  : 'border-line bg-canvas'
+                  }`}>
+
                 {/* Responsive Header (Top Row: Badge, Title & Price) */}
                 <View className="w-full">
                   {pkg.badge && (
                     <View className="self-start mb-2">
                       <View
-                        className={`rounded-full px-2.5 py-0.5 ${
-                          pkg.popular ? 'bg-primary' : 'bg-line'
-                        }`}>
-                        <Text
-                          className={`text-[9.5px] font-bold uppercase tracking-wider ${
-                            pkg.popular ? 'text-white' : 'text-ink-secondary'
+                        className={`rounded-full px-2.5 py-0.5 ${pkg.popular ? 'bg-primary' : 'bg-line'
                           }`}>
+                        <Text
+                          className={`text-[9.5px] font-bold uppercase tracking-wider ${pkg.popular ? 'text-white' : 'text-ink-secondary'
+                            }`}>
                           {pkg.badge}
                         </Text>
                       </View>
