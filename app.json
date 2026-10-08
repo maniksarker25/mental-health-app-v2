@@ -14,7 +14,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/app-icon.png",
         "backgroundColor": "#F5F6F2"
-      }
+      },
+      "package": "com.devsmanik.mentalhealthanonymous"
     },
     "web": {
       "bundler": "metro",
@@ -35,6 +36,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "a386693b-cbf9-470a-8a16-3fa5a15aefde"
+      }
     }
   }
 }
