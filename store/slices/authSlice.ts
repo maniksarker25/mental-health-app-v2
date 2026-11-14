@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { MobileUser, HistoryEntry } from '@/types';
 
 import { mockHistoryEntries } from '@/data/historyData';
+import { hasAccessToken } from '@/utils/backendApi';
 
 const AUTH_STORAGE_KEY = 'mha_mobile_auth_state_v2';
 
@@ -46,7 +47,13 @@ export const loadPersistedAuth = createAsyncThunk(
     try {
       const json = await AsyncStorage.getItem(AUTH_STORAGE_KEY);
       if (json) {
-        return JSON.parse(json) as Partial<AuthState>;
+        const persisted = JSON.parse(json) as Partial<AuthState>;
+        if (persisted.user && await hasAccessToken()) return persisted;
+        return {
+          ...persisted,
+          user: null,
+          isAuthenticated: false,
+        };
       }
     } catch (error) {
       console.warn('Failed to load persisted auth state', error);

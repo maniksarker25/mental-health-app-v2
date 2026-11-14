@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,6 +15,7 @@ import { AppButton } from '@/components/ui/shared/AppButton';
 import { PrivacyNotice } from '@/components/ui/shared/PrivacyNotice';
 import { TopicIcon } from '@/components/topic/TopicIcon';
 import { maskEmail, maskPhone } from '@/utils/mask';
+import { createIdempotencyKey } from '@/utils/backendApi';
 
 function ReviewRow({
   label,
@@ -50,6 +51,18 @@ function ReviewRow({
   );
 }
 
+function getSendErrorMessage(error: unknown): string {
+  if (typeof error !== 'object' || error === null || !('data' in error)) {
+    return 'We couldn’t send the message. Please check your connection and try again.';
+  }
+  const data = error.data;
+  if (typeof data === 'string') return data;
+  if (typeof data === 'object' && data !== null && 'message' in data && typeof data.message === 'string') {
+    return data.message;
+  }
+  return 'We couldn’t send the message. Please check your connection and try again.';
+}
+
 export default function ReviewScreen() {
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -59,9 +72,11 @@ export default function ReviewScreen() {
 
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
 
-  const [createShare, { isLoading, isError, reset }] =
+  const [createShare, { isLoading, error, reset }] =
     useCreateAnonymousShareMutation();
   const [acknowledged, setAcknowledged] = useState(false);
+  const idempotencyKey = useRef<string | null>(null);
+  const sendErrorMessage = error ? getSendErrorMessage(error) : '';
 
   useEffect(() => {
     if (!selectedTopic || !recipient) {
@@ -99,17 +114,19 @@ export default function ReviewScreen() {
 
     try {
       const result = await createShare({
-        topicId: selectedTopic.id,
-        deliveryMethod: recipient.method,
-        recipient: rawRecipient,
-        message: message || undefined,
-        articles: selectedArticles,
-        userId: user.id,
-        userEmail: user.email,
+        topic: selectedTopic.apiId || selectedTopic.slug || selectedTopic.id,
+        channel: recipient.method === 'EMAIL' ? 'email' : 'sms',
+        recipientEmail: recipient.method === 'EMAIL' ? rawRecipient : undefined,
+        recipientPhone: recipient.method === 'SMS' ? rawRecipient : undefined,
+        recipientName: recipient.name,
+        customNote: message || undefined,
+        articles: selectedArticles.map((article) => article.id),
+        senderAttestation: true,
+        idempotencyKey: (idempotencyKey.current ??= createIdempotencyKey()),
       }).unwrap();
 
       const newHistoryEntry = {
-        id: result.shareId,
+        id: result.messageId,
         userId: user.id,
         userEmail: user.email,
         topicId: selectedTopic.id,
@@ -135,6 +152,7 @@ export default function ReviewScreen() {
       const topicName = selectedTopic.name;
       const method = recipient.method;
 
+      idempotencyKey.current = null;
       dispatch(resetShareFlow());
 
       router.replace({
@@ -239,6 +257,19 @@ export default function ReviewScreen() {
           onEdit={() => router.push('/send/recipient')}
         />
 
+        {recipient.name ? (
+          <ReviewRow
+            label="Recipient name"
+            value={
+              <Text className="text-[15px] font-medium text-ink">
+                {recipient.name}
+              </Text>
+            }
+            editAccessibilityLabel="Edit recipient name"
+            onEdit={() => router.push('/send/recipient')}
+          />
+        ) : null}
+
         <ReviewRow
           label="Message"
           value={
@@ -262,16 +293,16 @@ export default function ReviewScreen() {
         <View className="mt-4 flex-row items-center gap-3 rounded-2xl bg-primary-tint p-4">
           <ActivityIndicator size="small" color="#2E5E52" />
           <Text className="flex-1 text-[13.5px] text-primary-dark font-medium">
-            Creating a secure link and delivering it…
+            Sending your message securely…
           </Text>
         </View>
       )}
 
       {/* Error state */}
-      {isError && (
+      {sendErrorMessage ? (
         <View className="mt-4 rounded-2xl bg-danger-soft p-4 border border-danger/30">
           <Text className="text-[13.5px] text-danger font-medium">
-            We couldn’t send the resource right now. Please check your connection and try again.
+            {sendErrorMessage}
           </Text>
           <TouchableOpacity onPress={() => reset()} className="mt-2">
             <Text className="text-[13px] font-semibold text-danger underline">
@@ -279,7 +310,7 @@ export default function ReviewScreen() {
             </Text>
           </TouchableOpacity>
         </View>
-      )}
+      ) : null}
 
       {/* Medical Disclaimer Checkbox */}
       <TouchableOpacity
@@ -297,12 +328,12 @@ export default function ReviewScreen() {
           )}
         </View>
         <Text className="flex-1 text-[13.5px] leading-5 text-ink-secondary">
-          I understand this is an educational resource and not professional medical advice.
+          I confirm I have a good-faith reason to contact this person and this message is supportive, not threatening or harassing. I understand the message sends immediately, my identity is not shown to the recipient, and recipient contact details and message content are stored in service records. These resources are educational and not professional medical advice.
         </Text>
       </TouchableOpacity>
 
       <PrivacyNotice className="mt-4" tone="soft">
-        Sent anonymously. Your name, email and number are never attached.
+        Your identity is not included in the message. Recipient details and message content are stored in service records.
       </PrivacyNotice>
     </ScreenWrapper>
   );

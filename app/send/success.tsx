@@ -23,12 +23,12 @@ export default function SuccessScreen() {
         </View>
 
         <Text className="mt-8 text-[26px] font-semibold text-ink text-center">
-          Resource sent successfully
+          Message accepted for delivery
         </Text>
 
         <Text className="mt-3 max-w-[300px] text-center text-[15px] leading-6 text-ink-secondary">
-          {topicName ? `${topicName} resources are on the way. ` : ''}
-          The recipient will receive a secure link by {channel} to view the selected educational resource.
+          {topicName ? `Your ${topicName} message was accepted. ` : ''}
+          The delivery provider accepted it for {channel}. Final delivery depends on the recipient’s email provider or mobile carrier.
         </Text>
 
         <PrivacyNotice className="mt-8 justify-center" tone="soft" icon="lock">

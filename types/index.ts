@@ -11,7 +11,9 @@ export type TopicId =
 export type TopicTone = 'mist' | 'lavender' | 'sky' | 'sand' | 'blush';
 
 export interface Topic {
-  id: TopicId;
+  id: string;
+  apiId?: string;
+  slug?: string;
   name: string;
   shortDescription: string;
   intro: string;
@@ -23,7 +25,8 @@ export interface Topic {
 
 export interface Article {
   id: string;
-  topicId: TopicId;
+  topicId: string;
+  slug?: string;
   title: string;
   excerpt: string;
   readTime: string;
@@ -34,28 +37,31 @@ export interface Article {
 
 export type DeliveryMethod = 'EMAIL' | 'SMS';
 
-export type ShareStatus = 'SENT' | 'FAILED';
+export type ShareStatus = 'SENT' | 'QUEUED' | 'FAILED';
 
 export interface Recipient {
   method: DeliveryMethod;
+  name?: string;
   email?: string;
   countryCode?: string;
   phone?: string;
 }
 
 export interface CreateSharePayload {
-  topicId: TopicId;
-  deliveryMethod: DeliveryMethod;
-  recipient: string;
-  message?: string;
-  articles?: Article[];
-  userId?: string;
-  userEmail?: string;
+  topic: string;
+  channel: 'email' | 'sms';
+  recipientEmail?: string;
+  recipientPhone?: string;
+  recipientName?: string;
+  customNote?: string;
+  articles: string[];
+  senderAttestation: true;
+  idempotencyKey: string;
 }
 
 export interface CreateShareResponse {
   success: boolean;
-  shareId: string;
+  messageId: string;
   status: ShareStatus;
 }
 
@@ -71,7 +77,7 @@ export interface HistoryEntry {
   id: string;
   userId?: string;
   userEmail?: string;
-  topicId: TopicId;
+  topicId: string;
   topicName: string;
   articles?: Article[];
   extraResourcesCount?: number;

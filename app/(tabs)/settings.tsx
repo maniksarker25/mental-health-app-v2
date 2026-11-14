@@ -9,6 +9,7 @@ import { AppCard } from '@/components/ui/shared/AppCard';
 import { AppButton } from '@/components/ui/shared/AppButton';
 import Toast from 'react-native-toast-message';
 import { useRouter } from 'expo-router';
+import { clearSessionTokens } from '@/utils/backendApi';
 
 const staticLinks: Array<{
   label: string;
@@ -17,7 +18,7 @@ const staticLinks: Array<{
 }> = [
   { label: 'Send History', icon: 'time-outline', route: '/history' },
   { label: 'About Mental Health Anonymous', icon: 'information-circle-outline', route: '/about' },
-  { label: 'Privacy Policy & Zero Retention', icon: 'shield-checkmark-outline', route: '/privacy' },
+  { label: 'Privacy Policy', icon: 'shield-checkmark-outline', route: '/privacy' },
   { label: 'Terms & Conditions', icon: 'document-text-outline', route: '/terms' },
   { label: 'Help & Crisis Helplines', icon: 'help-buoy-outline', route: '/help' },
 ];
@@ -36,14 +37,23 @@ export default function SettingsScreen() {
     user && accountHistories[user.id] ? accountHistories[user.id] : [];
 
   const handleLogout = () => {
-    const performLogout = () => {
-      dispatch(logoutUser());
-      Toast.show({
-        type: 'info',
-        text1: 'Signed Out',
-        text2: 'You have been signed out of your account.',
-      });
-      router.replace('/login');
+    const performLogout = async () => {
+      try {
+        await clearSessionTokens();
+        dispatch(logoutUser());
+        Toast.show({
+          type: 'info',
+          text1: 'Signed Out',
+          text2: 'You have been signed out of your account.',
+        });
+        router.replace('/login');
+      } catch {
+        Toast.show({
+          type: 'error',
+          text1: 'Could Not Sign Out',
+          text2: 'Please try again.',
+        });
+      }
     };
 
     if (Platform.OS === 'web') {

@@ -87,6 +87,8 @@ export default function HistoryScreen() {
               {userDispatches.map((entry, index) => {
                 const isLast = index === userDispatches.length - 1;
                 const isDelivered = entry.status === 'SENT';
+                const isQueued = entry.status === 'QUEUED';
+                const isAccepted = isDelivered || isQueued;
                 const formattedTime =
                   entry.formattedDate || formatSentDate(entry.sentAt);
                 const extraCount =
@@ -112,27 +114,27 @@ export default function HistoryScreen() {
                         <View
                           style={[
                             styles.statusPill,
-                            isDelivered
+                            isAccepted
                               ? styles.statusDelivered
                               : styles.statusFailed,
                           ]}>
                           <Ionicons
                             name={
-                              isDelivered
+                              isAccepted
                                 ? 'checkmark-circle-outline'
                                 : 'close-circle-outline'
                             }
                             size={13}
-                            color={isDelivered ? '#265346' : '#A9524A'}
+                            color={isAccepted ? '#265346' : '#A9524A'}
                           />
                           <Text
                             style={[
                               styles.statusText,
-                              isDelivered
+                              isAccepted
                                 ? styles.statusTextDelivered
                                 : styles.statusTextFailed,
                             ]}>
-                            {isDelivered ? 'Delivered' : 'Failed'}
+                            {isDelivered ? 'Delivered' : isQueued ? 'Accepted' : 'Failed'}
                           </Text>
                         </View>
                       </View>

@@ -24,6 +24,7 @@ export default function RecipientScreen() {
   const [method, setMethod] = useState<DeliveryMethod>(
     storedRecipient?.method || 'EMAIL'
   );
+  const [name, setName] = useState(storedRecipient?.name || '');
   const [email, setEmail] = useState(storedRecipient?.email || '');
   const [countryCode, setCountryCode] = useState(
     storedRecipient?.countryCode || '+1'
@@ -47,6 +48,7 @@ export default function RecipientScreen() {
       dispatch(
         setRecipient({
           method: 'EMAIL',
+          name: name.trim() || undefined,
           email: result.data.email,
         })
       );
@@ -59,6 +61,7 @@ export default function RecipientScreen() {
       dispatch(
         setRecipient({
           method: 'SMS',
+          name: name.trim() || undefined,
           countryCode: result.data.countryCode,
           phone: result.data.phone,
         })
@@ -82,7 +85,7 @@ export default function RecipientScreen() {
         <Text className="mb-5 text-[13.5px] leading-5 text-ink-secondary">
           Sending{' '}
           <Text className="font-semibold text-ink">{selectedTopic.name}</Text>{' '}
-          resources. We only need a destination — nothing about you.
+          resources. Your sender identity will not be included in the delivered message.
         </Text>
       )}
 
@@ -99,6 +102,16 @@ export default function RecipientScreen() {
       />
 
       <View className="mt-6 gap-4">
+        <InputField
+          label="Recipient name (optional)"
+          placeholder="Name"
+          value={name}
+          onChangeText={setName}
+          autoCapitalize="words"
+          autoCorrect={false}
+          maxLength={100}
+          helperText="Used only to personalize the greeting."
+        />
         {method === 'EMAIL' ? (
           <InputField
             label="Recipient email address"
@@ -153,8 +166,8 @@ export default function RecipientScreen() {
       </View>
 
       <PrivacyNotice className="mt-6" tone="soft" icon="lock">
-        Your identity will not be included in the message. We don’t store the
-        recipient’s details after it’s delivered.
+        Your identity will not be included in the message. Recipient contact
+        details and message content are stored in service records.
       </PrivacyNotice>
 
       <CountryPickerModal

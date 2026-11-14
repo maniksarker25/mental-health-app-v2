@@ -9,7 +9,7 @@ const faqs = [
     {
         question: 'Is sending resources really 100% anonymous?',
         answer:
-            'Yes. Your name, phone number, email, and location are never attached to the sent message or stored on our servers.',
+            'Your sender identity is not included in the message the recipient receives. You must sign in, and your account is associated with the dispatch in service records.',
     },
     {
         question: 'What does the recipient receive?',
@@ -19,7 +19,7 @@ const faqs = [
     {
         question: 'Do you store recipient phone numbers or emails?',
         answer:
-            'No. Contact details are held only in temporary memory to send the resource and are immediately purged permanently.',
+            'Yes. Recipient contact details and message content are stored in service records so the dispatch can be processed and tracked.',
     },
     {
         question: 'Can I clear my local send history?',

@@ -14,9 +14,9 @@ import { useRouter } from 'expo-router';
 const coreValues = [
   {
     icon: 'shield-checkmark-outline' as const,
-    title: '100% Anonymous by Design',
+    title: 'Sender Identity Hidden from Recipients',
     description:
-      'Zero server logs, no accounts, and no tracking. Sender identity is never attached or recorded.',
+      'Your account is used to submit a dispatch, but your identity is not included in the message the recipient receives.',
   },
   {
     icon: 'heart-outline' as const,
@@ -41,7 +41,7 @@ const steps = [
   {
     step: '2',
     title: 'Enter Recipient',
-    desc: 'Provide an email or phone number. Details are processed purely in-memory.',
+    desc: 'Provide an email or phone number. Contact details and message content are stored in service records.',
   },
   {
     step: '3',
@@ -87,9 +87,8 @@ export default function AboutScreen() {
 
             <Text style={styles.heroTitle}>Mental Health Anonymous</Text>
             <Text style={styles.heroDescription}>
-              A safe, judgment-free platform enabling anyone to share helpful
-              mental health resources with friends, family, or colleagues
-              completely anonymously.
+              A safe, judgment-free platform for sharing helpful mental health
+              resources without including the sender’s identity in the message.
             </Text>
           </View>
 

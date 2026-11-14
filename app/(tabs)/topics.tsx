@@ -34,7 +34,7 @@ export default function TopicsTabScreen() {
     dispatch(setSelectedTopic(topic));
     router.push({
       pathname: '/topics/[id]',
-      params: { id: topic.id },
+      params: { id: topic.apiId || topic.slug || topic.id },
     });
   };
 
@@ -50,7 +50,7 @@ export default function TopicsTabScreen() {
             Send Anonymous Resource
           </Text>
           <Text className="mt-1 text-[13px] leading-5 text-ink-secondary">
-            Select a topic to send an evidence-based toolkit to someone you care about with zero tracking.
+            Select a topic and send an educational toolkit without including your identity in the message.
           </Text>
         </View>
 
@@ -135,7 +135,7 @@ export default function TopicsTabScreen() {
             ))}
 
             <PrivacyNotice className="mt-4" tone="soft">
-              Your identity is never collected or shared with the recipient.
+              Your identity is not included in the message the recipient receives.
             </PrivacyNotice>
           </View>
         )}

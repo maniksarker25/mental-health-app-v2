@@ -17,7 +17,7 @@ import { useAppDispatch } from "@/store/hooks";
 import { loginUser } from "@/store/slices/authSlice";
 import { AppButton } from "@/components/ui/shared/AppButton";
 import Toast from "react-native-toast-message";
-import type { MobileUser } from "@/types";
+import { authenticateUser, toMobileUser } from "@/utils/backendApi";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -36,7 +36,7 @@ export default function LoginScreen() {
     {},
   );
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (isLoading) return;
     const normalizedEmail = email.trim().toLowerCase();
     const nextErrors = {
@@ -54,28 +54,25 @@ export default function LoginScreen() {
     }
     Keyboard.dismiss();
     setIsLoading(true);
-    setTimeout(() => {
-      // Preserve the existing local session flow.
-      const user: MobileUser = {
-        id: normalizedEmail.includes("sarah")
-          ? "user-demo-1"
-          : `user-${Date.now()}`,
-        name: normalizedEmail
-          .split("@")[0]
-          .replace(".", " ")
-          .replace(/^\w/, (c) => c.toUpperCase()),
-        email: normalizedEmail,
-        createdAt: new Date().toISOString(),
-      };
+    try {
+      const profile = await authenticateUser(normalizedEmail, password);
+      const user = toMobileUser(profile, normalizedEmail);
       dispatch(loginUser(user));
-      setIsLoading(false);
       Toast.show({
         type: "success",
         text1: `Welcome back, ${user.name}!`,
         text2: "Signed in successfully.",
       });
       router.replace(redirect ? (redirect as any) : "/history");
-    }, 600);
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "Sign In Failed",
+        text2: error instanceof Error ? error.message : "Please try again.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

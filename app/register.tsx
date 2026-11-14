@@ -13,15 +13,12 @@ import {
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useAppDispatch } from "@/store/hooks";
-import { registerUser } from "@/store/slices/authSlice";
 import { AppButton } from "@/components/ui/shared/AppButton";
 import Toast from "react-native-toast-message";
-import type { MobileUser } from "@/types";
+import { registerAccount } from "@/utils/backendApi";
 
 export default function RegisterScreen() {
   const router = useRouter();
-  const dispatch = useAppDispatch();
   const { redirect } = useLocalSearchParams<{ redirect?: string }>();
 
   const nameRef = useRef<TextInput>(null);
@@ -49,7 +46,7 @@ export default function RegisterScreen() {
     agreed?: string;
   }>({});
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     if (isLoading) return;
 
     const normalizedName = name.trim();
@@ -101,33 +98,36 @@ export default function RegisterScreen() {
 
     Keyboard.dismiss();
     setIsLoading(true);
-
-    setTimeout(() => {
-      const newUser: MobileUser = {
-        id: `user-${Date.now()}`,
+    try {
+      await registerAccount({
         name: normalizedName,
         email: normalizedEmail,
-        createdAt: new Date().toISOString(),
-      };
-
-      dispatch(registerUser(newUser));
-      setIsLoading(false);
-
+        password,
+        confirmPassword,
+      });
       Toast.show({
         type: "success",
         text1: `Account Created`,
-        text2: `A 6-digit verification code has been sent to ${newUser.email}.`,
+        text2: `A 6-digit verification code has been sent to ${normalizedEmail}.`,
       });
 
       router.replace({
         pathname: "/verify-email",
         params: {
-          email: newUser.email,
+          email: normalizedEmail,
           redirect: redirect || "/history",
           mode: "register",
         },
       });
-    }, 600);
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "Registration Failed",
+        text2: error instanceof Error ? error.message : "Please try again.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -376,7 +376,7 @@ export default function RegisterScreen() {
                 activeOpacity={0.85}
                 accessibilityRole="checkbox"
                 accessibilityState={{ checked: agreed, disabled: isLoading }}
-                accessibilityLabel="I agree to use this service compassionately and understand that recipient identities are never tracked."
+                accessibilityLabel="I agree to use this service compassionately and understand that recipient details and message content are stored in service records."
                 disabled={isLoading}
                 onPress={() => {
                   setAgreed(!agreed);
@@ -393,7 +393,7 @@ export default function RegisterScreen() {
                 </View>
                 <Text style={styles.agreementText}>
                   I agree to use this service compassionately and understand
-                  that recipient identities are never tracked.
+                  that recipient details and message content are stored in service records.
                 </Text>
               </TouchableOpacity>
 

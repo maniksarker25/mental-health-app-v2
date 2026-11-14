@@ -4,15 +4,16 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  ActivityIndicator,
   Platform,
   StyleSheet,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import type { Article, TopicId } from '@/types';
-import { getArticlesByTopicId, searchArticles } from '@/data/articles';
+import type { Article } from '@/types';
 
 interface ArticleSelectorProps {
-  topicId: TopicId;
+  articles: Article[];
+  isLoading?: boolean;
   selectedArticles: Article[];
   onToggleArticle: (article: Article) => void;
   onSelectAll: (articles: Article[]) => void;
@@ -20,7 +21,8 @@ interface ArticleSelectorProps {
 }
 
 export function ArticleSelector({
-  topicId,
+  articles,
+  isLoading = false,
   selectedArticles,
   onToggleArticle,
   onSelectAll,
@@ -30,29 +32,28 @@ export function ArticleSelector({
   const [activeCategory, setActiveCategory] = useState<string>('All');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
-  // All articles for this topic
-  const topicArticles = useMemo(() => {
-    return getArticlesByTopicId(topicId);
-  }, [topicId]);
-
   // Unique categories
   const categories = useMemo(() => {
     const set = new Set<string>(['All']);
-    topicArticles.forEach((a) => set.add(a.category));
+    articles.forEach((article) => set.add(article.category));
     return Array.from(set);
-  }, [topicArticles]);
+  }, [articles]);
 
   // Filtered articles
   const filteredArticles = useMemo(() => {
-    let list = topicArticles;
-    if (searchQuery.trim()) {
-      list = searchArticles(searchQuery, topicId);
-    }
+    const query = searchQuery.trim().toLowerCase();
+    let list = query
+      ? articles.filter(
+          (article) =>
+            article.title.toLowerCase().includes(query) ||
+            article.excerpt.toLowerCase().includes(query)
+        )
+      : articles;
     if (activeCategory !== 'All') {
       list = list.filter((a) => a.category === activeCategory);
     }
     return list;
-  }, [topicArticles, searchQuery, activeCategory, topicId]);
+  }, [articles, searchQuery, activeCategory]);
 
   const allFilteredSelected =
     filteredArticles.length > 0 &&
@@ -86,9 +87,10 @@ export function ArticleSelector({
           <View>
             <Text style={styles.sectionTitle}>Select Article Resources</Text>
             <Text style={styles.sectionSubtitle}>
-              {selectedArticles.length} of {topicArticles.length} article
-              {topicArticles.length === 1 ? '' : 's'} chosen to attach
+              {selectedArticles.length} of {articles.length} article
+              {articles.length === 1 ? '' : 's'} chosen to attach
             </Text>
+            <Text style={styles.sectionSubtitle}>You can attach up to 5 resources.</Text>
           </View>
         </View>
 
@@ -155,12 +157,18 @@ export function ArticleSelector({
 
       {/* Articles List */}
       <View style={styles.articlesList}>
-        {filteredArticles.length === 0 ? (
+        {isLoading ? (
+          <ActivityIndicator size="small" color="#2E5E52" />
+        ) : filteredArticles.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Ionicons name="document-text-outline" size={28} color="#9AA5A0" />
-            <Text style={styles.emptyTitle}>No matching articles found</Text>
+            <Text style={styles.emptyTitle}>
+              {searchQuery ? 'No matching resources found' : 'No resources available'}
+            </Text>
             <Text style={styles.emptySubtitle}>
-              Try searching with another keyword or reset filters.
+              {searchQuery
+                ? 'Try searching with another keyword or reset filters.'
+                : 'You can still send a supportive message without attaching a guide.'}
             </Text>
             {searchQuery.length > 0 && (
               <TouchableOpacity

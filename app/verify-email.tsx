@@ -17,9 +17,17 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { AppButton } from '@/components/ui/shared/AppButton';
 import Toast from 'react-native-toast-message';
+import { useAppDispatch } from '@/store/hooks';
+import { loginUser } from '@/store/slices/authSlice';
+import {
+  resendRegistrationCode,
+  toMobileUser,
+  verifyRegistration,
+} from '@/utils/backendApi';
 
 export default function VerifyEmailScreen() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const { email, redirect, mode } = useLocalSearchParams<{
     email?: string;
     redirect?: string;
@@ -74,7 +82,7 @@ export default function VerifyEmailScreen() {
     }
   };
 
-  const handleVerify = () => {
+  const handleVerify = async () => {
     if (isLoading) return;
     const fullCode = code.join('');
 
@@ -90,32 +98,55 @@ export default function VerifyEmailScreen() {
     Keyboard.dismiss();
     setIsLoading(true);
 
-    setTimeout(() => {
-      setIsLoading(false);
-      Toast.show({
-        type: 'success',
-        text1: 'Email Verified',
-        text2: 'Your email address has been successfully verified.',
-      });
+    if (mode === 'reset') {
+      setTimeout(() => {
+        setIsLoading(false);
+        Toast.show({
+          type: 'success',
+          text1: 'Email Verified',
+          text2: 'Your email address has been successfully verified.',
+        });
 
-      if (mode === 'reset') {
         router.push({
           pathname: '/reset-password',
           params: email ? { email } : undefined,
         });
-      } else if (redirect) {
+      }, 600);
+      return;
+    }
+
+    try {
+      const profile = await verifyRegistration(email || '', fullCode);
+      const user = toMobileUser(profile, email || '');
+      dispatch(loginUser(user));
+      Toast.show({
+        type: 'success',
+        text1: 'Email Verified',
+        text2: 'Your account is ready.',
+      });
+      if (redirect) {
         router.replace(redirect as any);
       } else {
         router.replace('/history');
       }
-    }, 600);
+    } catch (error) {
+      setIsLoading(false);
+      Toast.show({
+        type: 'error',
+        text1: 'Verification Failed',
+        text2: error instanceof Error ? error.message : 'Please try again.',
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleResendOTP = () => {
+  const handleResendOTP = async () => {
     if (isResending || countdown > 0) return;
     setIsResending(true);
 
-    setTimeout(() => {
+    try {
+      if (mode !== 'reset') await resendRegistrationCode(email || '');
       setIsResending(false);
       setCountdown(30);
       Toast.show({
@@ -133,7 +164,14 @@ export default function VerifyEmailScreen() {
           return prev - 1;
         });
       }, 1000);
-    }, 500);
+    } catch (error) {
+      setIsResending(false);
+      Toast.show({
+        type: 'error',
+        text1: 'Could Not Resend Code',
+        text2: error instanceof Error ? error.message : 'Please try again.',
+      });
+    }
   };
 
   return (

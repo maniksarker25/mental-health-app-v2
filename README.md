@@ -7,13 +7,14 @@
 
 ## 📱 Features
 
-- **Zero Identity Tracking**: No accounts, no sign-ups, and zero sender metadata attached to shared packets.
+- **Account-based dispatch**: Users sign in to send messages; account identity is not included in the message delivered to recipients.
 - **Curated Topic Library**: Educational packets covering Anxiety, Depression, Stress & Burnout, Substance Abuse, Grief & Loss, Dementia, Trauma, and Eating Disorders.
 - **3-Step Send Flow**:
-  1. **Destination**: Select Email or SMS with country code selection and live validation.
-  2. **Supportive Note**: Add an optional warm message (with 240 char limit and suggestion prompts) or skip.
-  3. **Review & Medical Disclaimer**: Masked preview of all parameters, medical disclaimer agreement, and anonymous dispatch.
-- **On-Device History**: Masked delivery logs stored strictly on the local device with clear history capability.
+  1. **Resources**: Load published topics and guides from the backend and choose what to share.
+  2. **Destination & Note**: Select Email or SMS, enter recipient details, and add an optional supportive note.
+  3. **Review & Consent**: Review the masked destination, confirm appropriate use, then submit to the authenticated message API.
+- **Message Delivery**: The backend sends email or SMS through its configured delivery providers and records dispatch details and status.
+- **On-Device History**: A masked copy of dispatches is stored locally; clearing it does not delete backend records.
 - **Delivery Updates**: Local notification preference toggles.
 
 ---
@@ -85,6 +86,17 @@
 ---
 
 ## 🚀 Getting Started
+
+### Configure the API
+
+Set `EXPO_PUBLIC_API_BASE_URL` to the backend origin or its `/api/v1` URL before starting Expo. For example:
+
+```env
+EXPO_PUBLIC_API_BASE_URL=https://api.example.com
+EXPO_PUBLIC_WEBSITE_URL=https://mentalhealthanonymous.org
+```
+
+The mobile app uses the backend for account registration, email verification, sign-in, published topics/resources, and authenticated message delivery. Native platforms store session tokens with Expo SecureStore; web uses AsyncStorage.
 
 ### 1. Install Dependencies
 ```bash

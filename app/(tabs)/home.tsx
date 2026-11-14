@@ -28,7 +28,7 @@ const DISPATCH_STEPS = [
     number: '2',
     title: 'Provide SMS or Email',
     description:
-      'Recipient contact details are processed in volatile memory only and permanently wiped immediately after dispatch.',
+      'Recipient contact details and message content are sent through our service and kept in service records.',
     icon: 'shield-checkmark-outline',
   },
   {
@@ -131,7 +131,7 @@ export default function HomeScreen() {
         <View className="px-4 pt-5 pb-6 bg-surface border-b border-line">
           <View className="self-start rounded-full bg-mist px-3 py-1 mb-2.5">
             <Text className="text-[10.5px] font-bold tracking-wider text-forest uppercase">
-              100% Confidential · Zero Tracking
+              Sender identity hidden from recipients
             </Text>
           </View>
 
@@ -424,10 +424,10 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Bottom Privacy & Zero Retention Card */}
+        {/* Bottom Privacy Card */}
         <View className="px-4 pt-5">
           <PrivacyNotice tone="soft">
-            Recipient numbers and emails are held temporarily in volatile memory only for the seconds required to deliver the message, and are permanently purged immediately afterward.
+            Your sender identity is not included in the delivered message. Recipient details and message content are stored in service records.
           </PrivacyNotice>
         </View>
       </ScrollView>
